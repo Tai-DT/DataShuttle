@@ -61,7 +61,7 @@ DataShuttle/
 ## 🚀 Cài đặt
 
 ```bash
-git clone https://github.com/user/DataShuttle.git
+git clone https://github.com/Tai-DT/DataShuttle.git
 cd DataShuttle
 open DataShuttle.xcodeproj
 ```
