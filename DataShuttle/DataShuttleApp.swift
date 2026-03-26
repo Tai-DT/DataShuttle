@@ -13,7 +13,15 @@ struct DataShuttleApp: App {
             SyncProfile.self,
             StorageSnapshot.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        
+        let appSupportDir = URL.applicationSupportDirectory
+        let storeDir = appSupportDir.appending(path: "DataShuttleDB")
+        
+        // Ensure directory exists to fix "fopen failed for data file: errno = 2"
+        try? FileManager.default.createDirectory(at: storeDir, withIntermediateDirectories: true, attributes: nil)
+        
+        let storeURL = storeDir.appending(path: "DataShuttle.sqlite")
+        let modelConfiguration = ModelConfiguration(schema: schema, url: storeURL)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
