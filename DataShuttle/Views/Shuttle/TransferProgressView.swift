@@ -3,8 +3,13 @@ import AppKit
 
 /// Transfer progress indicator view with real-time file tracking
 struct TransferProgressView: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let job: TransferJob
     var onCancel: (() -> Void)?
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var statusColor: Color {
         switch job.status {
@@ -31,7 +36,7 @@ struct TransferProgressView: View {
                         .font(.callout)
                         .fontWeight(.medium)
                     
-                    Text(job.statusDetail ?? (job.isRestore ? "Đang khôi phục" : "Đang chuyển"))
+                    Text(job.statusDetail ?? (job.isRestore ? t("Đang khôi phục") : t("Đang chuyển")))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -48,7 +53,7 @@ struct TransferProgressView: View {
                             .foregroundStyle(.red.opacity(0.7))
                     }
                     .buttonStyle(.plain)
-                    .help("Hủy chuyển")
+                    .help(t("Hủy chuyển"))
                 }
                 
                 // Reveal in Finder (when completed)
@@ -63,7 +68,7 @@ struct TransferProgressView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Hiện trong Finder")
+                    .help(t("Hiện trong Finder"))
                 }
                 
                 Text(job.status.rawValue)

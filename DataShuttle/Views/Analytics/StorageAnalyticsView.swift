@@ -5,11 +5,16 @@ import Charts
 /// Storage analytics view with charts
 struct StorageAnalyticsView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @Query(sort: \StorageSnapshot.date, order: .reverse) private var snapshots: [StorageSnapshot]
     @Query(filter: #Predicate<ShuttleItem> { $0.statusRaw == "shuttled" })
     private var shuttledItems: [ShuttleItem]
     
     @State private var volumeManager = VolumeManager()
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var totalSaved: Int64 {
         shuttledItems.reduce(0) { $0 + $1.sizeBytes }
@@ -43,11 +48,11 @@ struct StorageAnalyticsView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Phân tích")
+                Text(t("Phân tích"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("Thống kê dung lượng và hiệu quả")
+                Text(t("Thống kê dung lượng và hiệu quả"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -57,7 +62,7 @@ struct StorageAnalyticsView: View {
             Button {
                 recordSnapshot()
             } label: {
-                Label("Ghi nhận", systemImage: "camera.fill")
+                Label(t("Ghi nhận"), systemImage: "camera.fill")
             }
             .buttonStyle(.bordered)
         }
@@ -69,25 +74,25 @@ struct StorageAnalyticsView: View {
     private var savingsOverview: some View {
         HStack(spacing: 16) {
             AnalyticsCard(
-                title: "Đã tiết kiệm",
+                title: t("Đã tiết kiệm"),
                 value: totalSaved.formattedBytes,
-                subtitle: "dung lượng ổ chính",
+                subtitle: t("dung lượng ổ chính"),
                 icon: "arrow.down.heart.fill",
                 gradient: [.green, .mint]
             )
             
             AnalyticsCard(
-                title: "Thư mục đã chuyển",
+                title: t("Thư mục đã chuyển"),
                 value: "\(shuttledItems.count)",
-                subtitle: "đang quản lý",
+                subtitle: t("đang quản lý"),
                 icon: "folder.fill.badge.gearshape",
                 gradient: [.blue, .cyan]
             )
             
             AnalyticsCard(
-                title: "Ổ đĩa",
+                title: t("Ổ đĩa"),
                 value: "\(volumeManager.volumes.count)",
-                subtitle: "đang kết nối",
+                subtitle: t("đang kết nối"),
                 icon: "externaldrive.fill",
                 gradient: [.purple, .indigo]
             )
@@ -95,7 +100,7 @@ struct StorageAnalyticsView: View {
             AnalyticsCard(
                 title: "Snapshots",
                 value: "\(snapshots.count)",
-                subtitle: "đã ghi nhận",
+                subtitle: t("đã ghi nhận"),
                 icon: "chart.line.uptrend.xyaxis",
                 gradient: [.orange, .yellow]
             )
@@ -106,11 +111,11 @@ struct StorageAnalyticsView: View {
     
     private var storageBreakdownChart: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Dung lượng theo ổ đĩa", systemImage: "chart.bar.fill")
+            Label(t("Dung lượng theo ổ đĩa"), systemImage: "chart.bar.fill")
                 .font(.headline)
             
             if volumeManager.volumes.isEmpty {
-                Text("Không có dữ liệu")
+                Text(t("Không có dữ liệu"))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 200)
             } else {
@@ -144,11 +149,11 @@ struct StorageAnalyticsView: View {
     
     private var snapshotTrendChart: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Biến động dung lượng", systemImage: "chart.line.uptrend.xyaxis")
+            Label(t("Biến động dung lượng"), systemImage: "chart.line.uptrend.xyaxis")
                 .font(.headline)
             
             if snapshots.count < 2 {
-                Text("Chưa đủ dữ liệu để vẽ biểu đồ (cần ít nhất 2 lần ghi nhận)")
+                Text(t("Chưa đủ dữ liệu để vẽ biểu đồ (cần ít nhất 2 lần ghi nhận)"))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 200)
             } else {
@@ -181,11 +186,11 @@ struct StorageAnalyticsView: View {
     
     private var shuttledItemsChart: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Thư mục đã shuttle (theo dung lượng)", systemImage: "chart.pie.fill")
+            Label(t("Thư mục đã shuttle (theo dung lượng)"), systemImage: "chart.pie.fill")
                 .font(.headline)
             
             if shuttledItems.isEmpty {
-                Text("Chưa có thư mục nào được shuttle")
+                Text(t("Chưa có thư mục nào được shuttle"))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 200)
             } else {
@@ -212,7 +217,7 @@ struct StorageAnalyticsView: View {
     
     private var volumeComparisonChart: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Tỷ lệ sử dụng", systemImage: "gauge.with.dots.needle.bottom.50percent")
+            Label(t("Tỷ lệ sử dụng"), systemImage: "gauge.with.dots.needle.bottom.50percent")
                 .font(.headline)
             
             VStack(spacing: 12) {
@@ -252,11 +257,11 @@ struct StorageAnalyticsView: View {
                         .frame(height: 8)
                         
                         HStack {
-                            Text("Đã dùng: \(volume.usedBytes.formattedBytes)")
+                            Text("\(t("Đã dùng")): \(volume.usedBytes.formattedBytes)")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                             Spacer()
-                            Text("Trống: \(volume.availableBytes.formattedBytes)")
+                            Text("\(t("Trống")): \(volume.availableBytes.formattedBytes)")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }

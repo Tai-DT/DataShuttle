@@ -5,6 +5,7 @@ import AppKit
 @main
 struct DataShuttleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @State private var driveMonitor = DriveMonitor()
     @State private var scheduledProfileService = FileShuttleService()
     
@@ -28,6 +29,7 @@ struct DataShuttleApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(\.locale, L10n.locale(for: appLanguage))
                 .onAppear {
                     NotificationManager.shared.configureAuthorizationIfNeeded()
                     driveMonitor.startMonitoring()
@@ -41,6 +43,7 @@ struct DataShuttleApp: App {
         // Menu Bar Widget
         MenuBarExtra("DataShuttle", systemImage: "arrow.left.arrow.right.circle.fill") {
             MenuBarView()
+                .environment(\.locale, L10n.locale(for: appLanguage))
                 .modelContainer(sharedModelContainer)
         }
         .menuBarExtraStyle(.window)
@@ -79,9 +82,18 @@ struct DataShuttleApp: App {
             
             Task {
                 for profile in matching {
+                    let autoStartTitle = String(
+                        format: L10n.tr("⚡ Auto Shuttle: %@", languageCode: appLanguage),
+                        profile.name
+                    )
+                    let autoStartBody = String(
+                        format: L10n.tr("Ổ \"%@\" đã cắm — đang chạy profile tự động.", languageCode: appLanguage),
+                        volumeName
+                    )
+
                     NotificationManager.shared.send(
-                        title: "⚡ Auto Shuttle: \(profile.name)",
-                        body: "Ổ \"\(volumeName)\" đã cắm — đang chạy profile tự động.",
+                        title: autoStartTitle,
+                        body: autoStartBody,
                         identifier: "auto-shuttle-start-\(profile.name)"
                     )
                     
@@ -90,9 +102,19 @@ struct DataShuttleApp: App {
                         modelContext: context
                     )
                     
+                    let autoCompleteTitle = String(
+                        format: L10n.tr("✅ Auto Shuttle xong: %@", languageCode: appLanguage),
+                        profile.name
+                    )
+                    let autoCompleteBody = String(
+                        format: L10n.tr("%d thư mục: %@", languageCode: appLanguage),
+                        result.totalCount,
+                        result.summary
+                    )
+
                     NotificationManager.shared.send(
-                        title: "✅ Auto Shuttle xong: \(profile.name)",
-                        body: "\(result.totalCount) thư mục: \(result.summary)",
+                        title: autoCompleteTitle,
+                        body: autoCompleteBody,
                         identifier: "auto-shuttle-complete-\(profile.name)-\(UUID().uuidString)"
                     )
                 }
@@ -105,6 +127,7 @@ struct DataShuttleApp: App {
 
 struct MenuBarView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @Query(filter: #Predicate<ShuttleItem> { $0.statusRaw == "shuttled" })
     private var shuttledItems: [ShuttleItem]
     
@@ -129,16 +152,16 @@ struct MenuBarView: View {
             
             // Quick stats
             VStack(spacing: 8) {
-                MenuBarStatRow(icon: "folder.fill", label: "Đang quản lý", value: "\(shuttledItems.count) thư mục")
-                MenuBarStatRow(icon: "arrow.down.heart.fill", label: "Đã tiết kiệm", value: totalSaved.formattedBytes)
-                MenuBarStatRow(icon: "externaldrive.fill", label: "Ổ kết nối", value: "\(volumeManager.volumes.count)")
+                MenuBarStatRow(icon: "folder.fill", label: L10n.tr("Đang quản lý", languageCode: appLanguage), value: "\(shuttledItems.count) thư mục")
+                MenuBarStatRow(icon: "arrow.down.heart.fill", label: L10n.tr("Đã tiết kiệm", languageCode: appLanguage), value: totalSaved.formattedBytes)
+                MenuBarStatRow(icon: "externaldrive.fill", label: L10n.tr("Ổ kết nối", languageCode: appLanguage), value: "\(volumeManager.volumes.count)")
             }
             
             Divider()
             
             // Volumes
             if !volumeManager.volumes.isEmpty {
-                Text("Ổ đĩa")
+                Text(L10n.tr("Ổ đĩa", languageCode: appLanguage))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 
@@ -167,13 +190,13 @@ struct MenuBarView: View {
                     window.makeKeyAndOrderFront(nil)
                 }
             } label: {
-                Label("Mở DataShuttle", systemImage: "macwindow")
+                Label(L10n.tr("Mở DataShuttle", languageCode: appLanguage), systemImage: "macwindow")
             }
             
             Button {
                 NSApp.terminate(nil)
             } label: {
-                Label("Thoát", systemImage: "power")
+                Label(L10n.tr("Thoát", languageCode: appLanguage), systemImage: "power")
             }
         }
         .padding(16)

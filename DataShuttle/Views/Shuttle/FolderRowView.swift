@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Row view for each folder in the analysis list
 struct FolderRowView: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let analysis: DiskAnalyzer.FolderAnalysis
     let canShuttle: Bool
     let isShuttling: Bool
@@ -16,6 +17,10 @@ struct FolderRowView: View {
         if analysis.sizeBytes > 1_000_000_000 { return .orange }    // > 1GB
         if analysis.sizeBytes > 500_000_000 { return .yellow }      // > 500MB
         return .green
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -39,7 +44,7 @@ struct FolderRowView: View {
                         .fontWeight(.medium)
                     
                     if analysis.isSymlink {
-                        Text("SYMLINK")
+                        Text(t("SYMLINK"))
                             .font(.system(size: 9, weight: .bold))
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
@@ -108,7 +113,7 @@ struct FolderRowView: View {
                         onShuttle()
                     }
                 } label: {
-                    Label("Chuyển", systemImage: "arrow.right.circle")
+                    Label(t("Chuyển"), systemImage: "arrow.right.circle")
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
@@ -124,16 +129,16 @@ struct FolderRowView: View {
             isHovered = hovering
         }
         .confirmationDialog(
-            "Chuyển thư mục \"\(analysis.name)\"?",
+            "\(t("Chuyển thư mục")) \"\(analysis.name)\"?",
             isPresented: $showConfirm,
             titleVisibility: .visible
         ) {
-            Button("Chuyển (\(analysis.sizeBytes.formattedBytes))") {
+            Button("\(t("Chuyển")) (\(analysis.sizeBytes.formattedBytes))") {
                 onShuttle()
             }
-            Button("Hủy", role: .cancel) {}
+            Button(t("Hủy"), role: .cancel) {}
         } message: {
-            Text("Thư mục sẽ được copy sang ổ phụ và tạo symlink tại vị trí gốc. Các ứng dụng vẫn hoạt động bình thường.")
+            Text(t("Thư mục sẽ được copy sang ổ phụ và tạo symlink tại vị trí gốc. Các ứng dụng vẫn hoạt động bình thường."))
         }
     }
     

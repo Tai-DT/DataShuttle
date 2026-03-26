@@ -4,6 +4,7 @@ import SwiftData
 /// Health check view — scan and fix broken symlinks
 struct HealthCheckView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @Query(filter: #Predicate<ShuttleItem> { $0.statusRaw == "shuttled" })
     private var shuttledItems: [ShuttleItem]
     
@@ -18,6 +19,10 @@ struct HealthCheckView: View {
             .map(\.originalPath)
             .sorted()
             .joined(separator: "|")
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -41,7 +46,7 @@ struct HealthCheckView: View {
             }
         }
         .background(Color(.windowBackgroundColor))
-        .alert(fixResultIsError ? "Lỗi" : "Thành công", isPresented: $showFixResult) {
+        .alert(fixResultIsError ? t("Lỗi") : t("Thành công"), isPresented: $showFixResult) {
             Button("OK") {}
         } message: {
             Text(fixResultMessage)
@@ -56,11 +61,11 @@ struct HealthCheckView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Health Check")
+                Text(t("Health Check"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("Kiểm tra tình trạng symlink và ổ đĩa")
+                Text(t("Kiểm tra tình trạng symlink và ổ đĩa"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -70,7 +75,7 @@ struct HealthCheckView: View {
             Button {
                 Task { await healthService.scan(items: shuttledItems) }
             } label: {
-                Label(healthService.isScanning ? "Đang quét..." : "Quét ngay", systemImage: "stethoscope")
+                Label(healthService.isScanning ? t("Đang quét...") : t("Quét ngay"), systemImage: "stethoscope")
             }
             .buttonStyle(.borderedProminent)
             .tint(.green)
@@ -84,28 +89,28 @@ struct HealthCheckView: View {
     private var statusOverviewCard: some View {
         HStack(spacing: 16) {
             HealthStatCard(
-                title: "Tổng symlink",
+                title: t("Tổng symlink"),
                 value: "\(healthService.results.count)",
                 icon: "link.circle.fill",
                 color: .blue
             )
             
             HealthStatCard(
-                title: "Hoạt động",
+                title: t("Hoạt động"),
                 value: "\(healthService.healthyCount)",
                 icon: "checkmark.circle.fill",
                 color: .green
             )
             
             HealthStatCard(
-                title: "Hỏng",
+                title: t("Hỏng"),
                 value: "\(healthService.brokenCount)",
                 icon: "exclamationmark.triangle.fill",
                 color: healthService.brokenCount > 0 ? .red : .gray
             )
             
             HealthStatCard(
-                title: "Ổ ngắt",
+                title: t("Ổ ngắt"),
                 value: "\(healthService.unmountedCount)",
                 icon: "externaldrive.fill.badge.xmark",
                 color: healthService.unmountedCount > 0 ? .orange : .gray
@@ -118,13 +123,13 @@ struct HealthCheckView: View {
     private var resultsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Kết quả quét", systemImage: "list.bullet.clipboard")
+                Label(t("Kết quả quét"), systemImage: "list.bullet.clipboard")
                     .font(.headline)
                 
                 Spacer()
                 
                 if let date = healthService.lastScanDate {
-                    Text("Lần quét: \(date.relativeString)")
+                    Text("\(t("Lần quét")): \(date.relativeString)")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
@@ -147,7 +152,7 @@ struct HealthCheckView: View {
             }
             
             if !healthy.isEmpty {
-                Text("Hoạt động bình thường")
+                Text(t("Hoạt động bình thường"))
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundStyle(.green)
@@ -173,19 +178,19 @@ struct HealthCheckView: View {
                 .foregroundStyle(.quaternary)
             
             if shuttledItems.isEmpty {
-                Text("Chưa có thư mục nào đang được shuttle")
+                Text(t("Chưa có thư mục nào đang được shuttle"))
                     .font(.headline)
                     .foregroundStyle(.secondary)
                 
-                Text("Health Check sẽ tự chạy khi app đã có symlink để kiểm tra.")
+                Text(t("Health Check sẽ tự chạy khi app đã có symlink để kiểm tra."))
                     .font(.subheadline)
                     .foregroundStyle(.tertiary)
             } else {
-                Text("Không có lỗi nào được phát hiện")
+                Text(t("Không có lỗi nào được phát hiện"))
                     .font(.headline)
                     .foregroundStyle(.secondary)
                 
-                Text("Đã kiểm tra \(shuttledItems.count) symlink đang được DataShuttle quản lý.")
+                Text("\(t("Đã kiểm tra")) \(shuttledItems.count) \(t("symlink đang được DataShuttle quản lý."))")
                     .font(.subheadline)
                     .foregroundStyle(.tertiary)
             }
@@ -198,9 +203,9 @@ struct HealthCheckView: View {
         VStack(spacing: 12) {
             ProgressView()
                 .controlSize(.large)
-            Text("Đang quét \(shuttledItems.count) symlink...")
+            Text("\(t("Đang quét")) \(shuttledItems.count) symlink...")
                 .font(.headline)
-            Text("Màn này sẽ tự kiểm tra ngay khi bạn mở tab Health Check.")
+            Text(t("Màn này sẽ tự kiểm tra ngay khi bạn mở tab Health Check."))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -212,7 +217,7 @@ struct HealthCheckView: View {
         fixingId = status.id
         do {
             try healthService.fixSymlink(for: status)
-            fixResultMessage = "Đã sửa symlink cho \"\(status.folderName)\" thành công!"
+            fixResultMessage = "\(t("Đã sửa symlink cho")) \"\(status.folderName)\" \(t("thành công!"))"
             fixResultIsError = false
             Task { await healthService.scan(items: shuttledItems) }
         } catch {

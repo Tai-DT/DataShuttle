@@ -29,6 +29,14 @@ class ShuttleViewModel {
     var isImporting = false
     var selectedImportSourceVolume: VolumeInfo?
     var importDestinationPath: String?
+
+    private var appLanguageCode: String {
+        UserDefaults.standard.string(forKey: L10n.languageStorageKey) ?? AppLanguage.system.rawValue
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguageCode)
+    }
     
     /// Open folder picker and return selected path
     func pickFolder() -> String? {
@@ -36,8 +44,8 @@ class ShuttleViewModel {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.message = "Chọn thư mục để chuyển sang ổ phụ"
-        panel.prompt = "Chọn"
+        panel.message = t("Chọn thư mục để chuyển sang ổ phụ")
+        panel.prompt = t("Chọn")
         
         guard panel.runModal() == .OK, let url = panel.url else {
             return nil
@@ -52,8 +60,8 @@ class ShuttleViewModel {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.message = "Chọn thư mục từ ổ phụ để chuyển vào ổ chính"
-        panel.prompt = "Chọn"
+        panel.message = t("Chọn thư mục từ ổ phụ để chuyển vào ổ chính")
+        panel.prompt = t("Chọn")
         
         // Start from Volumes if possible
         if let volume = selectedImportSourceVolume {
@@ -75,8 +83,8 @@ class ShuttleViewModel {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.message = "Chọn vị trí đích trên ổ chính"
-        panel.prompt = "Chọn"
+        panel.message = t("Chọn vị trí đích trên ổ chính")
+        panel.prompt = t("Chọn")
         panel.directoryURL = URL(fileURLWithPath: NSHomeDirectory())
         
         guard panel.runModal() == .OK, let url = panel.url else {
@@ -92,8 +100,8 @@ class ShuttleViewModel {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.message = "Chọn vị trí đích trên ổ phụ"
-        panel.prompt = "Chọn"
+        panel.message = t("Chọn vị trí đích trên ổ phụ")
+        panel.prompt = t("Chọn")
         
         if let volume = selectedDestinationVolume {
             panel.directoryURL = URL(fileURLWithPath: volume.mountPoint)
@@ -126,7 +134,7 @@ class ShuttleViewModel {
     /// Uses shuttleDestinationPath if set, otherwise uses DataShuttle folder on volume root
     func shuttleFolder(atPath path: String, modelContext: ModelContext) async {
         guard let destination = selectedDestinationVolume else {
-            errorMessage = "Vui lòng chọn ổ đích"
+            errorMessage = t("Vui lòng chọn ổ đích")
             showError = true
             return
         }
@@ -151,9 +159,9 @@ class ShuttleViewModel {
             modelContext.insert(item)
             try modelContext.save()
             
-            successMessage = "Đã chuyển \(item.folderName) thành công!"
+            successMessage = "\(t("Đã chuyển")) \(item.folderName) \(t("thành công!"))"
             showSuccess = true
-            NotificationManager.shared.sendTransferComplete(folderName: item.folderName, direction: "shuttle sang ổ phụ")
+            NotificationManager.shared.sendTransferComplete(folderName: item.folderName, direction: t("shuttle sang ổ phụ"))
             
         } catch {
             errorMessage = error.localizedDescription
@@ -167,7 +175,7 @@ class ShuttleViewModel {
     /// Import a folder from secondary drive to main drive
     func importFolder(atPath sourcePath: String, deleteSource: Bool) async {
         guard let destination = importDestinationPath else {
-            errorMessage = "Vui lòng chọn thư mục đích trên ổ chính"
+            errorMessage = t("Vui lòng chọn thư mục đích trên ổ chính")
             showError = true
             return
         }
@@ -185,10 +193,10 @@ class ShuttleViewModel {
             )
             
             let folderName = URL(fileURLWithPath: sourcePath).lastPathComponent
-            let action = deleteSource ? "Di chuyển" : "Sao chép"
-            successMessage = "\(action) \(folderName) về ổ chính thành công!"
+            let action = deleteSource ? t("Di chuyển") : t("Sao chép")
+            successMessage = "\(action) \(folderName) \(t("về ổ chính thành công!"))"
             showSuccess = true
-            NotificationManager.shared.sendTransferComplete(folderName: folderName, direction: "import về ổ chính")
+            NotificationManager.shared.sendTransferComplete(folderName: folderName, direction: t("import về ổ chính"))
             
             // Refresh analysis
             if let volume = selectedImportSourceVolume {
@@ -215,9 +223,9 @@ class ShuttleViewModel {
             
             try modelContext.save()
             
-            successMessage = "Đã khôi phục \(item.folderName) thành công!"
+            successMessage = "\(t("Đã khôi phục")) \(item.folderName) \(t("thành công!"))"
             showSuccess = true
-            NotificationManager.shared.sendTransferComplete(folderName: item.folderName, direction: "khôi phục về ổ chính")
+            NotificationManager.shared.sendTransferComplete(folderName: item.folderName, direction: t("khôi phục về ổ chính"))
             
         } catch {
             errorMessage = error.localizedDescription

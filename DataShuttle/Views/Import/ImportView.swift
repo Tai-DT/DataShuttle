@@ -4,10 +4,15 @@ import SwiftData
 /// View for importing files from secondary drive to main drive
 struct ImportView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     
     @State private var viewModel = ShuttleViewModel()
     @State private var selectedSourcePath: String?
     @State private var deleteSourceAfterImport = true
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -35,15 +40,15 @@ struct ImportView: View {
             }
         }
         .background(Color(.windowBackgroundColor))
-        .alert("Lỗi", isPresented: $viewModel.showError) {
+        .alert(t("Lỗi"), isPresented: $viewModel.showError) {
             Button("OK") {}
         } message: {
-            Text(viewModel.errorMessage ?? "Đã xảy ra lỗi")
+            Text(viewModel.errorMessage ?? t("Đã xảy ra lỗi"))
         }
-        .alert("Thành công", isPresented: $viewModel.showSuccess) {
+        .alert(t("Thành công"), isPresented: $viewModel.showSuccess) {
             Button("OK") {}
         } message: {
-            Text(viewModel.successMessage ?? "Hoàn thành")
+            Text(viewModel.successMessage ?? t("Hoàn thành"))
         }
         .onAppear {
             viewModel.volumeManager.refreshVolumes()
@@ -54,16 +59,16 @@ struct ImportView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Luồng Import")
+                    Text(t("Luồng Import"))
                         .font(.headline)
-                    Text("Chọn ổ nguồn, chọn thư mục hoặc duyệt tay, rồi đưa dữ liệu về đúng vị trí trên máy chính.")
+                    Text(t("Chọn ổ nguồn, chọn thư mục hoặc duyệt tay, rồi đưa dữ liệu về đúng vị trí trên máy chính."))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 
                 Spacer()
                 
-                Text(viewModel.importDestinationPath == nil ? "Thiếu đích" : "Sẵn sàng import")
+                Text(viewModel.importDestinationPath == nil ? t("Thiếu đích") : t("Sẵn sàng import"))
                     .font(.caption)
                     .fontWeight(.medium)
                     .padding(.horizontal, 10)
@@ -75,24 +80,24 @@ struct ImportView: View {
             
             HStack(spacing: 12) {
                 ImportCheckpoint(
-                    title: "Ổ nguồn",
-                    detail: viewModel.selectedImportSourceVolume?.name ?? "Chưa chọn ổ phụ",
+                    title: t("Ổ nguồn"),
+                    detail: viewModel.selectedImportSourceVolume?.name ?? t("Chưa chọn ổ phụ"),
                     icon: "externaldrive.fill",
                     isComplete: viewModel.selectedImportSourceVolume != nil,
                     tint: .orange
                 )
                 
                 ImportCheckpoint(
-                    title: "Thư mục import",
-                    detail: selectedSourcePath ?? (viewModel.importFolderAnalysis.isEmpty ? "Chọn tay hoặc từ danh sách quét" : "Có thể chọn nhanh từ danh sách bên dưới"),
+                    title: t("Thư mục import"),
+                    detail: selectedSourcePath ?? (viewModel.importFolderAnalysis.isEmpty ? t("Chọn tay hoặc từ danh sách quét") : t("Có thể chọn nhanh từ danh sách bên dưới")),
                     icon: "folder.fill",
                     isComplete: selectedSourcePath != nil || !viewModel.importFolderAnalysis.isEmpty,
                     tint: .blue
                 )
                 
                 ImportCheckpoint(
-                    title: "Đích trên máy",
-                    detail: viewModel.importDestinationPath ?? "Chưa chọn vị trí đích",
+                    title: t("Đích trên máy"),
+                    detail: viewModel.importDestinationPath ?? t("Chưa chọn vị trí đích"),
                     icon: "internaldrive.fill",
                     isComplete: viewModel.importDestinationPath != nil,
                     tint: .green
@@ -111,11 +116,11 @@ struct ImportView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Import")
+                Text(t("Import"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("Chuyển thư mục từ ổ phụ về ổ chính")
+                Text(t("Chuyển thư mục từ ổ phụ về ổ chính"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -146,7 +151,7 @@ struct ImportView: View {
     
     private var sourceVolumeCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Bước 1: Chọn ổ nguồn", systemImage: "1.circle.fill")
+            Label(t("Bước 1: Chọn ổ nguồn"), systemImage: "1.circle.fill")
                 .font(.headline)
                 .foregroundStyle(.orange)
             
@@ -154,7 +159,7 @@ struct ImportView: View {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
-                    Text("Không tìm thấy ổ phụ. Hãy kết nối ổ đĩa ngoài.")
+                    Text(t("Không tìm thấy ổ phụ. Hãy kết nối ổ đĩa ngoài."))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -191,11 +196,11 @@ struct ImportView: View {
     
     private var sourceSelectionCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Bước 2: Chọn thư mục nguồn", systemImage: "2.circle.fill")
+            Label(t("Bước 2: Chọn thư mục nguồn"), systemImage: "2.circle.fill")
                 .font(.headline)
                 .foregroundStyle(.orange)
             
-            Text("Bạn có thể duyệt tay một thư mục cụ thể, hoặc chọn nhanh từ danh sách quét bên dưới.")
+            Text(t("Bạn có thể duyệt tay một thư mục cụ thể, hoặc chọn nhanh từ danh sách quét bên dưới."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
@@ -225,7 +230,7 @@ struct ImportView: View {
                     }
                     .buttonStyle(.plain)
                 } else {
-                    Text("Chọn thư mục từ ổ phụ hoặc nhấp \"Chuyển\" bên dưới")
+                    Text(t("Chọn thư mục từ ổ phụ hoặc nhấp \"Chuyển\" bên dưới"))
                         .foregroundStyle(.secondary)
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -240,7 +245,7 @@ struct ImportView: View {
                         selectedSourcePath = path
                     }
                 } label: {
-                    Label("Duyệt", systemImage: "folder.badge.plus")
+                    Label(t("Duyệt"), systemImage: "folder.badge.plus")
                 }
                 .buttonStyle(.bordered)
                 .tint(.orange)
@@ -248,7 +253,7 @@ struct ImportView: View {
             
             if let selectedSourcePath {
                 HStack {
-                    Text(deleteSourceAfterImport ? "Thư mục đã chọn sẽ được di chuyển về máy chính." : "Thư mục đã chọn sẽ được sao chép về máy chính.")
+                    Text(deleteSourceAfterImport ? t("Thư mục đã chọn sẽ được di chuyển về máy chính.") : t("Thư mục đã chọn sẽ được sao chép về máy chính."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
@@ -263,7 +268,7 @@ struct ImportView: View {
                         }
                     } label: {
                         Label(
-                            deleteSourceAfterImport ? "Di chuyển ngay" : "Sao chép ngay",
+                            deleteSourceAfterImport ? t("Di chuyển ngay") : t("Sao chép ngay"),
                             systemImage: deleteSourceAfterImport ? "arrow.right.circle.fill" : "doc.on.doc.fill"
                         )
                     }
@@ -289,7 +294,7 @@ struct ImportView: View {
     
     private var destinationCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Bước 3: Chọn vị trí đích trên ổ chính", systemImage: "3.circle.fill")
+            Label(t("Bước 3: Chọn vị trí đích trên ổ chính"), systemImage: "3.circle.fill")
                 .font(.headline)
                 .foregroundStyle(.blue)
             
@@ -311,7 +316,7 @@ struct ImportView: View {
                             .strokeBorder(.blue.opacity(0.2), lineWidth: 1)
                     }
                 } else {
-                    Text("Chưa chọn vị trí đích")
+                    Text(t("Chưa chọn vị trí đích"))
                         .foregroundStyle(.secondary)
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -326,13 +331,13 @@ struct ImportView: View {
                         viewModel.importDestinationPath = path
                     }
                 } label: {
-                    Label("Chọn", systemImage: "folder.badge.plus")
+                    Label(t("Chọn"), systemImage: "folder.badge.plus")
                 }
                 .buttonStyle(.borderedProminent)
             }
             
             // Quick destination shortcuts
-            Text("Gợi ý:")
+            Text(t("Gợi ý:"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
@@ -361,17 +366,17 @@ struct ImportView: View {
     
     private var optionsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Bước 4: Tùy chọn import", systemImage: "4.circle.fill")
+            Label(t("Bước 4: Tùy chọn import"), systemImage: "4.circle.fill")
                 .font(.headline)
                 .foregroundStyle(.blue)
             
             Toggle(isOn: $deleteSourceAfterImport) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Xóa nguồn sau khi chuyển")
+                    Text(t("Xóa nguồn sau khi chuyển"))
                         .font(.body)
                     Text(deleteSourceAfterImport
-                         ? "⚠️ File gốc trên ổ phụ sẽ bị XÓA sau khi copy xong (Di chuyển)"
-                         : "File gốc trên ổ phụ sẽ được GIỮ NGUYÊN (Sao chép)")
+                         ? t("⚠️ File gốc trên ổ phụ sẽ bị XÓA sau khi copy xong (Di chuyển)")
+                         : t("File gốc trên ổ phụ sẽ được GIỮ NGUYÊN (Sao chép)"))
                         .font(.caption)
                         .foregroundStyle(deleteSourceAfterImport ? .orange : .secondary)
                 }
@@ -390,7 +395,7 @@ struct ImportView: View {
     private var importFolderListSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Bước 5: Chọn nhanh từ danh sách quét", systemImage: "5.circle.fill")
+                Label(t("Bước 5: Chọn nhanh từ danh sách quét"), systemImage: "5.circle.fill")
                     .font(.headline)
                     .foregroundStyle(.orange)
                 
@@ -401,12 +406,12 @@ struct ImportView: View {
                         .controlSize(.small)
                 }
                 
-                Text("\(viewModel.importFolderAnalysis.count) thư mục")
+                Text("\(viewModel.importFolderAnalysis.count) \(t("thư mục"))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             
-            Text("Danh sách này giúp xử lý nhanh nhiều thư mục trên ổ phụ mà không cần duyệt tay từng lần.")
+            Text(t("Danh sách này giúp xử lý nhanh nhiều thư mục trên ổ phụ mà không cần duyệt tay từng lần."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
@@ -440,7 +445,7 @@ struct ImportView: View {
     
     private var activeJobsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Đang chuyển", systemImage: "arrow.triangle.2.circlepath")
+            Label(t("Đang chuyển"), systemImage: "arrow.triangle.2.circlepath")
                 .font(.headline)
             
             ForEach(viewModel.fileShuttleService.activeJobs) { job in
@@ -496,11 +501,16 @@ struct ImportCheckpoint: View {
 // MARK: - Import Volume Button
 
 struct ImportVolumeButton: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let volume: VolumeInfo
     let isSelected: Bool
     let action: () -> Void
     
     @State private var isHovered = false
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var body: some View {
         Button(action: action) {
@@ -514,7 +524,7 @@ struct ImportVolumeButton: View {
                     .fontWeight(.medium)
                     .foregroundStyle(isSelected ? .white : .primary)
                 
-                Text("Dung lượng: \(volume.usedBytes.formattedBytes)")
+                Text("\(t("Dung lượng")): \(volume.usedBytes.formattedBytes)")
                     .font(.caption2)
                     .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
             }
@@ -541,6 +551,7 @@ struct ImportVolumeButton: View {
 // MARK: - Import Folder Row
 
 struct ImportFolderRow: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let analysis: DiskAnalyzer.FolderAnalysis
     let canImport: Bool
     let isImporting: Bool
@@ -555,6 +566,10 @@ struct ImportFolderRow: View {
         if analysis.sizeBytes > 1_000_000_000 { return .orange }
         if analysis.sizeBytes > 500_000_000 { return .yellow }
         return .green
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -603,7 +618,7 @@ struct ImportFolderRow: View {
                     showConfirm = true
                 } label: {
                     Label(
-                        deleteSource ? "Di chuyển" : "Sao chép",
+                        deleteSource ? t("Di chuyển") : t("Sao chép"),
                         systemImage: deleteSource ? "arrow.right.circle" : "doc.on.doc"
                     )
                 }
@@ -622,19 +637,19 @@ struct ImportFolderRow: View {
             isHovered = hovering
         }
         .confirmationDialog(
-            "\(deleteSource ? "Di chuyển" : "Sao chép") thư mục \"\(analysis.name)\"?",
+            "\(deleteSource ? t("Di chuyển") : t("Sao chép")) \(t("thư mục")) \"\(analysis.name)\"?",
             isPresented: $showConfirm,
             titleVisibility: .visible
         ) {
-            Button("\(deleteSource ? "Di chuyển" : "Sao chép") (\(analysis.sizeBytes.formattedBytes))") {
+            Button("\(deleteSource ? t("Di chuyển") : t("Sao chép")) (\(analysis.sizeBytes.formattedBytes))") {
                 onImport()
             }
-            Button("Hủy", role: .cancel) {}
+            Button(t("Hủy"), role: .cancel) {}
         } message: {
             if deleteSource {
-                Text("Thư mục sẽ được chuyển từ ổ phụ sang ổ chính. File gốc trên ổ phụ sẽ bị xóa.")
+                Text(t("Thư mục sẽ được chuyển từ ổ phụ sang ổ chính. File gốc trên ổ phụ sẽ bị xóa."))
             } else {
-                Text("Thư mục sẽ được sao chép từ ổ phụ sang ổ chính. File gốc vẫn giữ nguyên.")
+                Text(t("Thư mục sẽ được sao chép từ ổ phụ sang ổ chính. File gốc vẫn giữ nguyên."))
             }
         }
     }

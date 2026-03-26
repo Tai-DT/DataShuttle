@@ -3,6 +3,7 @@ import SwiftData
 
 /// Main navigation view with sidebar
 struct ContentView: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @State private var selectedTab: SidebarTab = .dashboard
     
     enum SidebarTab: String, CaseIterable, Identifiable {
@@ -18,31 +19,31 @@ struct ContentView: View {
         
         var id: String { rawValue }
         
-        var title: String {
+        func title(languageCode: String) -> String {
             switch self {
-            case .dashboard: return "Tổng quan"
-            case .shuttle: return "Shuttle"
-            case .importView: return "Import"
-            case .bookmarks: return "Ghi nhớ"
-            case .syncProfiles: return "Tác vụ nhóm"
-            case .cloud: return "Cloud"
-            case .healthCheck: return "Health Check"
-            case .analytics: return "Phân tích"
-            case .settings: return "Cài đặt"
+            case .dashboard: return L10n.tr("Tổng quan", languageCode: languageCode)
+            case .shuttle: return L10n.tr("Shuttle", languageCode: languageCode)
+            case .importView: return L10n.tr("Import", languageCode: languageCode)
+            case .bookmarks: return L10n.tr("Ghi nhớ", languageCode: languageCode)
+            case .syncProfiles: return L10n.tr("Tác vụ nhóm", languageCode: languageCode)
+            case .cloud: return L10n.tr("Cloud", languageCode: languageCode)
+            case .healthCheck: return L10n.tr("Health Check", languageCode: languageCode)
+            case .analytics: return L10n.tr("Phân tích", languageCode: languageCode)
+            case .settings: return L10n.tr("Cài đặt", languageCode: languageCode)
             }
         }
         
-        var subtitle: String {
+        func subtitle(languageCode: String) -> String {
             switch self {
-            case .dashboard: return "Bắt đầu từ các luồng chính"
-            case .shuttle: return "Đẩy dữ liệu sang ổ phụ hoặc cloud"
-            case .importView: return "Đưa dữ liệu về lại máy chính"
-            case .bookmarks: return "Lối tắt cho thư mục hay dùng"
-            case .syncProfiles: return "Chạy theo nhóm thư mục"
-            case .cloud: return "Phát hiện đích đồng bộ đám mây"
-            case .healthCheck: return "Kiểm tra symlink và ổ đĩa"
-            case .analytics: return "Theo dõi hiệu quả lưu trữ"
-            case .settings: return "Tùy chỉnh hành vi ứng dụng"
+            case .dashboard: return L10n.tr("Bắt đầu từ các luồng chính", languageCode: languageCode)
+            case .shuttle: return L10n.tr("Đẩy dữ liệu sang ổ phụ hoặc cloud", languageCode: languageCode)
+            case .importView: return L10n.tr("Đưa dữ liệu về lại máy chính", languageCode: languageCode)
+            case .bookmarks: return L10n.tr("Lối tắt cho thư mục hay dùng", languageCode: languageCode)
+            case .syncProfiles: return L10n.tr("Chạy theo nhóm thư mục", languageCode: languageCode)
+            case .cloud: return L10n.tr("Phát hiện đích đồng bộ đám mây", languageCode: languageCode)
+            case .healthCheck: return L10n.tr("Kiểm tra symlink và ổ đĩa", languageCode: languageCode)
+            case .analytics: return L10n.tr("Theo dõi hiệu quả lưu trữ", languageCode: languageCode)
+            case .settings: return L10n.tr("Tùy chỉnh hành vi ứng dụng", languageCode: languageCode)
             }
         }
         
@@ -101,7 +102,7 @@ struct ContentView: View {
                     .font(.headline)
                     .fontWeight(.bold)
                 
-                Text("Điều phối dữ liệu giữa SSD, ổ ngoài và cloud")
+                Text(L10n.tr("Điều phối dữ liệu giữa SSD, ổ ngoài và cloud", languageCode: appLanguage))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -115,41 +116,41 @@ struct ContentView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 4) {
                     // Main section
-                    SidebarSectionHeader(title: "CHÍNH")
-                    SidebarButton(tab: .dashboard, isSelected: selectedTab == .dashboard) {
+                    SidebarSectionHeader(title: L10n.tr("CHÍNH", languageCode: appLanguage))
+                    SidebarButton(tab: .dashboard, languageCode: appLanguage, isSelected: selectedTab == .dashboard) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .dashboard }
                     }
                     
                     // Transfer section
-                    SidebarSectionHeader(title: "CHUYỂN DỮ LIỆU")
-                    SidebarButton(tab: .shuttle, isSelected: selectedTab == .shuttle) {
+                    SidebarSectionHeader(title: L10n.tr("CHUYỂN DỮ LIỆU", languageCode: appLanguage))
+                    SidebarButton(tab: .shuttle, languageCode: appLanguage, isSelected: selectedTab == .shuttle) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .shuttle }
                     }
-                    SidebarButton(tab: .importView, isSelected: selectedTab == .importView) {
+                    SidebarButton(tab: .importView, languageCode: appLanguage, isSelected: selectedTab == .importView) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .importView }
                     }
-                    SidebarButton(tab: .bookmarks, isSelected: selectedTab == .bookmarks) {
+                    SidebarButton(tab: .bookmarks, languageCode: appLanguage, isSelected: selectedTab == .bookmarks) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .bookmarks }
                     }
-                    SidebarButton(tab: .syncProfiles, isSelected: selectedTab == .syncProfiles) {
+                    SidebarButton(tab: .syncProfiles, languageCode: appLanguage, isSelected: selectedTab == .syncProfiles) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .syncProfiles }
                     }
                     
                     // Cloud & Storage
-                    SidebarSectionHeader(title: "LƯU TRỮ")
-                    SidebarButton(tab: .cloud, isSelected: selectedTab == .cloud) {
+                    SidebarSectionHeader(title: L10n.tr("LƯU TRỮ", languageCode: appLanguage))
+                    SidebarButton(tab: .cloud, languageCode: appLanguage, isSelected: selectedTab == .cloud) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .cloud }
                     }
-                    SidebarButton(tab: .analytics, isSelected: selectedTab == .analytics) {
+                    SidebarButton(tab: .analytics, languageCode: appLanguage, isSelected: selectedTab == .analytics) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .analytics }
                     }
                     
                     // System section
-                    SidebarSectionHeader(title: "HỆ THỐNG")
-                    SidebarButton(tab: .healthCheck, isSelected: selectedTab == .healthCheck) {
+                    SidebarSectionHeader(title: L10n.tr("HỆ THỐNG", languageCode: appLanguage))
+                    SidebarButton(tab: .healthCheck, languageCode: appLanguage, isSelected: selectedTab == .healthCheck) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .healthCheck }
                     }
-                    SidebarButton(tab: .settings, isSelected: selectedTab == .settings) {
+                    SidebarButton(tab: .settings, languageCode: appLanguage, isSelected: selectedTab == .settings) {
                         withAnimation(.spring(response: 0.3)) { selectedTab = .settings }
                     }
                 }
@@ -168,7 +169,7 @@ struct ContentView: View {
                     Text("v1.1.0")
                         .font(.caption2)
                         .foregroundStyle(.quaternary)
-                    Text("Luồng chính ưu tiên tốc độ thao tác")
+                    Text(L10n.tr("Luồng chính ưu tiên tốc độ thao tác", languageCode: appLanguage))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
@@ -231,6 +232,7 @@ struct SidebarSectionHeader: View {
 
 struct SidebarButton: View {
     let tab: ContentView.SidebarTab
+    let languageCode: String
     let isSelected: Bool
     let action: () -> Void
     
@@ -255,12 +257,12 @@ struct SidebarButton: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(tab.title)
+                    Text(tab.title(languageCode: languageCode))
                         .font(.subheadline)
                         .fontWeight(isSelected ? .semibold : .medium)
                         .foregroundStyle(isSelected ? .primary : .secondary)
                     
-                    Text(tab.subtitle)
+                    Text(tab.subtitle(languageCode: languageCode))
                         .font(.caption2)
                         .foregroundStyle(isSelected ? .secondary : .tertiary)
                         .lineLimit(1)

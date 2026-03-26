@@ -4,6 +4,7 @@ import SwiftData
 /// View for managing bookmarked folders for quick shuttle/import
 struct BookmarksView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @Query(sort: \BookmarkItem.useCount, order: .reverse) private var bookmarks: [BookmarkItem]
     
     @State private var viewModel = ShuttleViewModel()
@@ -18,6 +19,10 @@ struct BookmarksView: View {
         ("blue", .blue), ("purple", .purple), ("orange", .orange),
         ("green", .green), ("pink", .pink), ("cyan", .cyan)
     ]
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -47,15 +52,15 @@ struct BookmarksView: View {
         .sheet(isPresented: $showAddBookmark) {
             addBookmarkSheet
         }
-        .alert("Lỗi", isPresented: $viewModel.showError) {
+        .alert(t("Lỗi"), isPresented: $viewModel.showError) {
             Button("OK") {}
         } message: {
-            Text(viewModel.errorMessage ?? "Đã xảy ra lỗi")
+            Text(viewModel.errorMessage ?? t("Đã xảy ra lỗi"))
         }
-        .alert("Thành công", isPresented: $viewModel.showSuccess) {
+        .alert(t("Thành công"), isPresented: $viewModel.showSuccess) {
             Button("OK") {}
         } message: {
-            Text(viewModel.successMessage ?? "Hoàn thành")
+            Text(viewModel.successMessage ?? t("Hoàn thành"))
         }
         .onAppear {
             viewModel.volumeManager.refreshVolumes()
@@ -67,11 +72,11 @@ struct BookmarksView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Ghi nhớ")
+                Text(t("Ghi nhớ"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("Thư mục hay dùng — chuyển nhanh 1 chạm")
+                Text(t("Thư mục hay dùng — chuyển nhanh 1 chạm"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -82,7 +87,7 @@ struct BookmarksView: View {
                 resetAddForm()
                 showAddBookmark = true
             } label: {
-                Label("Thêm", systemImage: "plus.circle.fill")
+                Label(t("Thêm"), systemImage: "plus.circle.fill")
             }
             .buttonStyle(.borderedProminent)
         }
@@ -93,7 +98,7 @@ struct BookmarksView: View {
     
     private func quickActionsSection(_ items: [BookmarkItem]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Hay dùng nhất", systemImage: "star.fill")
+            Label(t("Hay dùng nhất"), systemImage: "star.fill")
                 .font(.headline)
                 .foregroundStyle(.yellow)
             
@@ -112,12 +117,12 @@ struct BookmarksView: View {
     private var allBookmarksSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Tất cả", systemImage: "bookmark.fill")
+                Label(t("Tất cả"), systemImage: "bookmark.fill")
                     .font(.headline)
                 
                 Spacer()
                 
-                Text("\(bookmarks.count) mục")
+                Text("\(bookmarks.count) \(t("mục"))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -142,11 +147,11 @@ struct BookmarksView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.quaternary)
             
-            Text("Chưa có ghi nhớ nào")
+            Text(t("Chưa có ghi nhớ nào"))
                 .font(.headline)
                 .foregroundStyle(.secondary)
             
-            Text("Thêm thư mục hay dùng để chuyển nhanh giữa các ổ đĩa")
+            Text(t("Thêm thư mục hay dùng để chuyển nhanh giữa các ổ đĩa"))
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
             
@@ -154,7 +159,7 @@ struct BookmarksView: View {
                 resetAddForm()
                 showAddBookmark = true
             } label: {
-                Label("Thêm ghi nhớ đầu tiên", systemImage: "plus")
+                Label(t("Thêm ghi nhớ đầu tiên"), systemImage: "plus")
             }
             .buttonStyle(.borderedProminent)
         }
@@ -166,21 +171,21 @@ struct BookmarksView: View {
     
     private var addBookmarkSheet: some View {
         VStack(spacing: 20) {
-            Text("Thêm Ghi Nhớ")
+            Text(t("Thêm Ghi Nhớ"))
                 .font(.title2)
                 .fontWeight(.bold)
             
             // Folder path
             VStack(alignment: .leading, spacing: 6) {
-                Text("Thư mục")
+                Text(t("Thư mục"))
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
                 HStack {
-                    TextField("Đường dẫn thư mục", text: $newBookmarkPath)
+                    TextField(t("Đường dẫn thư mục"), text: $newBookmarkPath)
                         .textFieldStyle(.roundedBorder)
                     
-                    Button("Chọn") {
+                    Button(t("Chọn")) {
                         let panel = NSOpenPanel()
                         panel.canChooseDirectories = true
                         panel.canChooseFiles = false
@@ -197,21 +202,21 @@ struct BookmarksView: View {
             
             // Display name
             VStack(alignment: .leading, spacing: 6) {
-                Text("Tên hiển thị")
+                Text(t("Tên hiển thị"))
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
-                TextField("Ví dụ: Ảnh cá nhân", text: $newBookmarkName)
+                TextField(t("Ví dụ: Ảnh cá nhân"), text: $newBookmarkName)
                     .textFieldStyle(.roundedBorder)
             }
             
             // Direction
             VStack(alignment: .leading, spacing: 6) {
-                Text("Hướng chuyển")
+                Text(t("Hướng chuyển"))
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
-                Picker("Hướng", selection: $newBookmarkDirection) {
+                Picker(t("Hướng"), selection: $newBookmarkDirection) {
                     ForEach(BookmarkDirection.allCases, id: \.self) { dir in
                         Label(dir.displayName, systemImage: dir.icon)
                             .tag(dir)
@@ -222,15 +227,15 @@ struct BookmarksView: View {
             
             // Preferred destination
             VStack(alignment: .leading, spacing: 6) {
-                Text("Đích mặc định (tuỳ chọn)")
+                Text(t("Đích mặc định (tuỳ chọn)"))
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
                 HStack {
-                    TextField("Đường dẫn đích", text: $newBookmarkDestination)
+                    TextField(t("Đường dẫn đích"), text: $newBookmarkDestination)
                         .textFieldStyle(.roundedBorder)
                     
-                    Button("Chọn") {
+                    Button(t("Chọn")) {
                         let panel = NSOpenPanel()
                         panel.canChooseDirectories = true
                         panel.canChooseFiles = false
@@ -244,7 +249,7 @@ struct BookmarksView: View {
             
             // Color tag
             VStack(alignment: .leading, spacing: 6) {
-                Text("Màu nhãn")
+                Text(t("Màu nhãn"))
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
@@ -272,14 +277,14 @@ struct BookmarksView: View {
             
             // Actions
             HStack {
-                Button("Hủy") {
+                Button(t("Hủy")) {
                     showAddBookmark = false
                 }
                 .buttonStyle(.bordered)
                 
                 Spacer()
                 
-                Button("Lưu") {
+                Button(t("Lưu")) {
                     saveBookmark()
                 }
                 .buttonStyle(.borderedProminent)
@@ -336,7 +341,7 @@ struct BookmarksView: View {
                     viewModel.volumeManager.refreshVolumes()
                     
                     guard let destinationVolume = viewModel.volumeManager.getVolume(for: destinationPath) else {
-                        viewModel.errorMessage = "Không tìm thấy ổ chứa đích. Hãy kiểm tra kết nối hoặc cập nhật ghi nhớ."
+                        viewModel.errorMessage = t("Không tìm thấy ổ chứa đích. Hãy kiểm tra kết nối hoặc cập nhật ghi nhớ.")
                         viewModel.showError = true
                         return
                     }
@@ -345,7 +350,7 @@ struct BookmarksView: View {
                     viewModel.shuttleDestinationPath = destinationPath
                     await viewModel.shuttleFolder(atPath: sourcePath, modelContext: modelContext)
                 } else {
-                    viewModel.errorMessage = "Chưa có đích mặc định. Hãy chỉnh sửa ghi nhớ."
+                    viewModel.errorMessage = t("Chưa có đích mặc định. Hãy chỉnh sửa ghi nhớ.")
                     viewModel.showError = true
                 }
             case .importToMain:
@@ -353,7 +358,7 @@ struct BookmarksView: View {
                     viewModel.importDestinationPath = NSString(string: dest).expandingTildeInPath
                     await viewModel.importFolder(atPath: sourcePath, deleteSource: true)
                 } else {
-                    viewModel.errorMessage = "Chưa có đích mặc định. Hãy chỉnh sửa ghi nhớ."
+                    viewModel.errorMessage = t("Chưa có đích mặc định. Hãy chỉnh sửa ghi nhớ.")
                     viewModel.showError = true
                 }
             }
@@ -440,6 +445,7 @@ struct QuickBookmarkCard: View {
 // MARK: - Bookmark Row
 
 struct BookmarkRow: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let bookmark: BookmarkItem
     let onExecute: () -> Void
     let onDelete: () -> Void
@@ -456,6 +462,10 @@ struct BookmarkRow: View {
         case "cyan": return .cyan
         default: return .blue
         }
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -505,7 +515,7 @@ struct BookmarkRow: View {
             
             // Execute button
             Button(action: onExecute) {
-                Label("Chuyển", systemImage: "play.fill")
+                Label(t("Chuyển"), systemImage: "play.fill")
             }
             .buttonStyle(.borderedProminent)
             .tint(tagColor)
@@ -537,11 +547,11 @@ struct BookmarkRow: View {
                 .strokeBorder(tagColor.opacity(isHovered ? 0.15 : 0.05), lineWidth: 1)
         }
         .onHover { hovering in isHovered = hovering }
-        .confirmationDialog("Xóa ghi nhớ?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
-            Button("Xóa", role: .destructive) { onDelete() }
-            Button("Hủy", role: .cancel) {}
+        .confirmationDialog(t("Xóa ghi nhớ?"), isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+            Button(t("Xóa"), role: .destructive) { onDelete() }
+            Button(t("Hủy"), role: .cancel) {}
         } message: {
-            Text("Ghi nhớ \"\(bookmark.name)\" sẽ bị xóa. Dữ liệu gốc không bị ảnh hưởng.")
+            Text("\(t("Ghi nhớ")) \"\(bookmark.name)\" \(t("sẽ bị xóa. Dữ liệu gốc không bị ảnh hưởng."))")
         }
     }
 }

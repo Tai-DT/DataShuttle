@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 struct ShuttleView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ShuttleItem.shuttledAt, order: .reverse) private var allItems: [ShuttleItem]
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     
     @AppStorage("confirmBeforeShuttle") private var confirmBeforeShuttle: Bool = true
     @AppStorage("showHiddenFiles") private var showHiddenFiles: Bool = false
@@ -22,6 +23,10 @@ struct ShuttleView: View {
         case shuttle = "Chuyển"
         case managed = "Đang quản lý"
         case history = "Lịch sử"
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -45,15 +50,15 @@ struct ShuttleView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(Color(.windowBackgroundColor))
-        .alert("Lỗi", isPresented: $viewModel.showError) {
+        .alert(t("Lỗi"), isPresented: $viewModel.showError) {
             Button("OK") {}
         } message: {
-            Text(viewModel.errorMessage ?? "Đã xảy ra lỗi")
+            Text(viewModel.errorMessage ?? t("Đã xảy ra lỗi"))
         }
-        .alert("Thành công", isPresented: $viewModel.showSuccess) {
+        .alert(t("Thành công"), isPresented: $viewModel.showSuccess) {
             Button("OK") {}
         } message: {
-            Text(viewModel.successMessage ?? "Hoàn thành")
+            Text(viewModel.successMessage ?? t("Hoàn thành"))
         }
         .onAppear {
             viewModel.volumeManager.refreshVolumes()
@@ -66,11 +71,11 @@ struct ShuttleView: View {
         VStack(spacing: 16) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Shuttle")
+                    Text(t("Shuttle"))
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     
-                    Text("Chuyển thư mục giữa các ổ đĩa")
+                    Text(t("Chuyển thư mục giữa các ổ đĩa"))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -86,7 +91,7 @@ struct ShuttleView: View {
                             selectedTab = tab
                         }
                     } label: {
-                        Text(tab.rawValue)
+                        Text(t(tab.rawValue))
                             .font(.subheadline)
                             .fontWeight(selectedTab == tab ? .semibold : .regular)
                             .foregroundStyle(selectedTab == tab ? .primary : .secondary)
@@ -137,7 +142,7 @@ struct ShuttleView: View {
                         VStack(spacing: 8) {
                             Image(systemName: "square.and.arrow.down.fill")
                                 .font(.largeTitle)
-                            Text("Thả thư mục vào đây")
+                            Text(t("Thả thư mục vào đây"))
                                 .font(.headline)
                         }
                         .foregroundStyle(.blue)
@@ -164,16 +169,16 @@ struct ShuttleView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Luồng Shuttle")
+                    Text(t("Luồng Shuttle"))
                         .font(.headline)
-                    Text("Chọn thư mục gốc, chọn đích lưu, rồi shuttle từng thư mục con được đề xuất.")
+                    Text(t("Chọn thư mục gốc, chọn đích lưu, rồi shuttle từng thư mục con được đề xuất."))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 
                 Spacer()
                 
-                Text(viewModel.selectedDestinationVolume == nil ? "Chưa sẵn sàng" : "Sẵn sàng phân tích")
+                Text(viewModel.selectedDestinationVolume == nil ? t("Chưa sẵn sàng") : t("Sẵn sàng phân tích"))
                     .font(.caption)
                     .fontWeight(.medium)
                     .padding(.horizontal, 10)
@@ -185,24 +190,24 @@ struct ShuttleView: View {
             
             HStack(spacing: 12) {
                 ShuttleCheckpoint(
-                    title: "Nguồn",
-                    detail: selectedFolderPath == nil ? "Chưa chọn thư mục gốc" : "Đã chọn thư mục để phân tích",
+                    title: t("Nguồn"),
+                    detail: selectedFolderPath == nil ? t("Chưa chọn thư mục gốc") : t("Đã chọn thư mục để phân tích"),
                     icon: "folder.fill",
                     isComplete: selectedFolderPath != nil,
                     tint: .blue
                 )
                 
                 ShuttleCheckpoint(
-                    title: "Đích lưu",
-                    detail: viewModel.selectedDestinationVolume?.name ?? "Chưa chọn ổ hoặc cloud path",
+                    title: t("Đích lưu"),
+                    detail: viewModel.selectedDestinationVolume?.name ?? t("Chưa chọn ổ hoặc cloud path"),
                     icon: "externaldrive.fill",
                     isComplete: viewModel.selectedDestinationVolume != nil,
                     tint: .purple
                 )
                 
                 ShuttleCheckpoint(
-                    title: "Danh sách đề xuất",
-                    detail: viewModel.folderAnalysis.isEmpty ? "Chưa có thư mục con để shuttle" : "\(viewModel.folderAnalysis.count) mục sẵn sàng xử lý",
+                    title: t("Danh sách đề xuất"),
+                    detail: viewModel.folderAnalysis.isEmpty ? t("Chưa có thư mục con để shuttle") : "\(viewModel.folderAnalysis.count) \(t("mục sẵn sàng xử lý"))",
                     icon: "list.bullet.rectangle",
                     isComplete: !viewModel.folderAnalysis.isEmpty,
                     tint: .green
@@ -218,11 +223,11 @@ struct ShuttleView: View {
     
     private var sourceSelectionCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Bước 1: Chọn thư mục gốc", systemImage: "1.circle.fill")
+            Label(t("Bước 1: Chọn thư mục gốc"), systemImage: "1.circle.fill")
                 .font(.headline)
                 .foregroundStyle(.blue)
             
-            Text("DataShuttle sẽ phân tích các thư mục con cấp đầu để bạn chọn chính xác phần nào nên chuyển đi.")
+            Text(t("DataShuttle sẽ phân tích các thư mục con cấp đầu để bạn chọn chính xác phần nào nên chuyển đi."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
@@ -245,7 +250,7 @@ struct ShuttleView: View {
                             .strokeBorder(.blue.opacity(0.2), lineWidth: 1)
                     }
                 } else {
-                    Text("Chưa chọn thư mục")
+                    Text(t("Chưa chọn thư mục"))
                         .foregroundStyle(.secondary)
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -263,13 +268,13 @@ struct ShuttleView: View {
                         }
                     }
                 } label: {
-                    Label("Chọn", systemImage: "folder.badge.plus")
+                    Label(t("Chọn"), systemImage: "folder.badge.plus")
                 }
                 .buttonStyle(.borderedProminent)
             }
             
             // Quick suggestions
-            Text("Gợi ý:")
+            Text(t("Gợi ý:"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
@@ -301,17 +306,17 @@ struct ShuttleView: View {
         let availableCloudServices = cloudManager.detectedServices.filter(\.isAvailable)
         
         return VStack(alignment: .leading, spacing: 12) {
-            Label("Bước 2: Chọn đích lưu", systemImage: "2.circle.fill")
+            Label(t("Bước 2: Chọn đích lưu"), systemImage: "2.circle.fill")
                 .font(.headline)
                 .foregroundStyle(.purple)
             
-            Text("Dùng ổ ngoài, ổ phụ, hoặc thư mục cloud (iCloud, Google Drive...) làm đích.")
+            Text(t("Dùng ổ ngoài, ổ phụ, hoặc thư mục cloud (iCloud, Google Drive...) làm đích."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
             // --- Ổ đĩa phụ ---
             if !viewModel.volumeManager.secondaryVolumes.isEmpty {
-                Text("Ổ đĩa")
+                Text(t("Ổ đĩa"))
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
@@ -332,7 +337,7 @@ struct ShuttleView: View {
             
             // --- Cloud Storage ---
             if !availableCloudServices.isEmpty {
-                Text("Cloud")
+                Text(t("Cloud"))
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
@@ -368,7 +373,7 @@ struct ShuttleView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                     
-                    Text("Không tìm thấy ổ phụ hay cloud. Kết nối ổ ngoài hoặc cài cloud storage.")
+                    Text(t("Không tìm thấy ổ phụ hay cloud. Kết nối ổ ngoài hoặc cài cloud storage."))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -385,7 +390,7 @@ struct ShuttleView: View {
                 Divider()
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(isCloudDestination ? "Thư mục đích trên cloud" : "Thư mục đích trên ổ phụ")
+                    Text(isCloudDestination ? t("Thư mục đích trên cloud") : t("Thư mục đích trên ổ phụ"))
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
@@ -404,7 +409,7 @@ struct ShuttleView: View {
                                     URL(fileURLWithPath: $0.mountPoint)
                                         .appendingPathComponent("DataShuttle").path
                                 } ?? ""
-                                Text("\(defaultPath) (mặc định)")
+                                Text("\(defaultPath) (\(t("mặc định")))")
                                     .font(.system(.caption, design: .monospaced))
                                     .foregroundStyle(.tertiary)
                                     .lineLimit(1)
@@ -424,7 +429,7 @@ struct ShuttleView: View {
                                 viewModel.shuttleDestinationPath = path
                             }
                         } label: {
-                            Label("Chọn", systemImage: "folder.badge.plus")
+                            Label(t("Chọn"), systemImage: "folder.badge.plus")
                         }
                         .buttonStyle(.bordered)
                         .tint(isCloudDestination ? .cyan : .purple)
@@ -437,7 +442,7 @@ struct ShuttleView: View {
                                 Image(systemName: "arrow.uturn.backward")
                             }
                             .buttonStyle(.bordered)
-                            .help("Đặt lại về mặc định")
+                            .help(t("Đặt lại về mặc định"))
                         }
                     }
                 }
@@ -456,7 +461,7 @@ struct ShuttleView: View {
     private var folderAnalysisSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Bước 3: Chọn thư mục cần shuttle", systemImage: "3.circle.fill")
+                Label(t("Bước 3: Chọn thư mục cần shuttle"), systemImage: "3.circle.fill")
                     .font(.headline)
                     .foregroundStyle(.green)
                 
@@ -467,12 +472,12 @@ struct ShuttleView: View {
                         .controlSize(.small)
                 }
                 
-                Text("\(viewModel.folderAnalysis.count) thư mục")
+                Text("\(viewModel.folderAnalysis.count) \(t("thư mục"))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             
-            Text("Mỗi thao tác sẽ copy sang đích lưu rồi thay thư mục gốc bằng symlink, nên app cũ vẫn hoạt động như bình thường.")
+            Text(t("Mỗi thao tác sẽ copy sang đích lưu rồi thay thư mục gốc bằng symlink, nên app cũ vẫn hoạt động như bình thường."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
@@ -503,7 +508,7 @@ struct ShuttleView: View {
     
     private var activeTransfersSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Theo dõi tiến trình", systemImage: "arrow.triangle.2.circlepath")
+            Label(t("Theo dõi tiến trình"), systemImage: "arrow.triangle.2.circlepath")
                 .font(.headline)
             
             ForEach(viewModel.fileShuttleService.activeJobs) { job in
@@ -529,8 +534,8 @@ struct ShuttleView: View {
                 if activeItems.isEmpty {
                     emptyStateView(
                         icon: "folder.badge.gearshape",
-                        title: "Chưa có thư mục nào",
-                        subtitle: "Chuyển thư mục sang ổ phụ để quản lý tại đây"
+                        title: t("Chưa có thư mục nào"),
+                        subtitle: t("Chuyển thư mục sang ổ phụ để quản lý tại đây")
                     )
                 } else {
                     ForEach(activeItems) { item in
@@ -554,8 +559,8 @@ struct ShuttleView: View {
                 if allItems.isEmpty {
                     emptyStateView(
                         icon: "clock",
-                        title: "Chưa có lịch sử",
-                        subtitle: "Các thao tác chuyển đổi sẽ hiển thị tại đây"
+                        title: t("Chưa có lịch sử"),
+                        subtitle: t("Các thao tác chuyển đổi sẽ hiển thị tại đây")
                     )
                 } else {
                     ForEach(allItems) { item in

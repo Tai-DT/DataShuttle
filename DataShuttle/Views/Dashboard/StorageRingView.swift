@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Animated ring chart showing storage usage
 struct StorageRingView: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let usedBytes: Int64
     let totalBytes: Int64
     let volumeName: String
@@ -16,6 +17,10 @@ struct StorageRingView: View {
     
     var availableBytes: Int64 {
         totalBytes - usedBytes
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -52,7 +57,7 @@ struct StorageRingView: View {
                         .foregroundStyle(accentColor)
                         .contentTransition(.numericText())
                     
-                    Text("đã dùng")
+                    Text(t("đã dùng"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

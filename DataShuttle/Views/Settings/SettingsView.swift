@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Settings view for app configuration
 struct SettingsView: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @AppStorage("defaultSourcePath") private var defaultSourcePath: String = "~"
     @AppStorage("createBackupBeforeShuttle") private var createBackup: Bool = true
     @AppStorage("showHiddenFiles") private var showHiddenFiles: Bool = false
@@ -14,11 +15,11 @@ struct SettingsView: View {
                 // Header
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Cài đặt")
+                        Text(L10n.tr("Cài đặt", languageCode: appLanguage))
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
-                        Text("Tùy chỉnh DataShuttle")
+                        Text(L10n.tr("Tùy chỉnh DataShuttle", languageCode: appLanguage))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -26,47 +27,68 @@ struct SettingsView: View {
                     Spacer()
                 }
                 
+                settingsSection(title: L10n.tr("Ngôn ngữ", languageCode: appLanguage), icon: "globe") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(L10n.tr("Chọn ngôn ngữ hiển thị cho ứng dụng", languageCode: appLanguage))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Picker(L10n.tr("Ngôn ngữ", languageCode: appLanguage), selection: $appLanguage) {
+                            ForEach(AppLanguage.allCases) { language in
+                                Text(language.displayName)
+                                    .tag(language.rawValue)
+                            }
+                        }
+                        .labelsHidden()
+
+                        Text(L10n.tr("Ngôn ngữ sẽ được áp dụng ngay lập tức trên các màn hình đã hỗ trợ.", languageCode: appLanguage))
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 4)
+                }
+
                 // General settings
-                settingsSection(title: "Chung", icon: "gearshape.fill") {
+                settingsSection(title: L10n.tr("Chung", languageCode: appLanguage), icon: "gearshape.fill") {
                     settingsToggle(
-                        title: "Xác nhận trước khi chuyển",
-                        subtitle: "Hiện hộp thoại xác nhận trước mỗi thao tác",
+                        title: L10n.tr("Xác nhận trước khi chuyển", languageCode: appLanguage),
+                        subtitle: L10n.tr("Hiện hộp thoại xác nhận trước mỗi thao tác", languageCode: appLanguage),
                         isOn: $confirmBeforeShuttle
                     )
                     
                     Divider()
                     
                     settingsToggle(
-                        title: "Tự động làm mới ổ đĩa",
-                        subtitle: "Tự động phát hiện ổ đĩa mới kết nối",
+                        title: L10n.tr("Tự động làm mới ổ đĩa", languageCode: appLanguage),
+                        subtitle: L10n.tr("Tự động phát hiện ổ đĩa mới kết nối", languageCode: appLanguage),
                         isOn: $autoRefreshVolumes
                     )
                     
                     Divider()
                     
                     settingsToggle(
-                        title: "Hiện file ẩn",
-                        subtitle: "Hiển thị các thư mục bắt đầu bằng dấu chấm (.)",
+                        title: L10n.tr("Hiện file ẩn", languageCode: appLanguage),
+                        subtitle: L10n.tr("Hiển thị các thư mục bắt đầu bằng dấu chấm (.)", languageCode: appLanguage),
                         isOn: $showHiddenFiles
                     )
                 }
                 
                 // Safety settings
-                settingsSection(title: "An toàn", icon: "shield.fill") {
+                settingsSection(title: L10n.tr("An toàn", languageCode: appLanguage), icon: "shield.fill") {
                     settingsToggle(
-                        title: "Tạo bản sao trước khi chuyển",
-                        subtitle: "Đảm bảo an toàn dữ liệu khi di chuyển",
+                        title: L10n.tr("Tạo bản sao trước khi chuyển", languageCode: appLanguage),
+                        subtitle: L10n.tr("Đảm bảo an toàn dữ liệu khi di chuyển", languageCode: appLanguage),
                         isOn: $createBackup
                     )
                 }
                 
                 // About section
-                settingsSection(title: "Về DataShuttle", icon: "info.circle.fill") {
+                settingsSection(title: L10n.tr("Về DataShuttle", languageCode: appLanguage), icon: "info.circle.fill") {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("DataShuttle")
                                 .font(.headline)
-                            Text("Phiên bản 1.0.0")
+                            Text("\(L10n.tr("Phiên bản", languageCode: appLanguage)) 1.0.0")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -87,15 +109,15 @@ struct SettingsView: View {
                     Divider()
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("DataShuttle giúp bạn tối ưu dung lượng ổ đĩa chính bằng cách di chuyển thư mục sang ổ phụ và tạo symlink để các ứng dụng vẫn hoạt động bình thường.")
+                        Text(L10n.tr("DataShuttle giúp bạn tối ưu dung lượng ổ đĩa chính bằng cách di chuyển thư mục sang ổ phụ và tạo symlink để các ứng dụng vẫn hoạt động bình thường.", languageCode: appLanguage))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         
-                        Text("⚡ Tận dụng hiệu năng SSD chính cho hệ thống")
+                        Text(L10n.tr("⚡ Tận dụng hiệu năng SSD chính cho hệ thống", languageCode: appLanguage))
                             .font(.caption)
-                        Text("💾 Lưu trữ dữ liệu lớn trên ổ phụ")
+                        Text(L10n.tr("💾 Lưu trữ dữ liệu lớn trên ổ phụ", languageCode: appLanguage))
                             .font(.caption)
-                        Text("🔗 Symlink giữ mọi thứ hoạt động bình thường")
+                        Text(L10n.tr("🔗 Symlink giữ mọi thứ hoạt động bình thường", languageCode: appLanguage))
                             .font(.caption)
                     }
                 }

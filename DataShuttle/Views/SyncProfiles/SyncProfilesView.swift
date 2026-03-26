@@ -4,6 +4,7 @@ import SwiftData
 /// Sync profiles — batch shuttle/import for grouped directories
 struct SyncProfilesView: View {
     @Environment(\.modelContext) private var modelContext
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @Query(sort: \SyncProfile.createdAt, order: .reverse) private var profiles: [SyncProfile]
     
     @State private var shuttleService = FileShuttleService()
@@ -22,6 +23,10 @@ struct SyncProfilesView: View {
         ("blue", .blue), ("purple", .purple), ("orange", .orange),
         ("green", .green), ("pink", .pink), ("cyan", .cyan)
     ]
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -58,11 +63,11 @@ struct SyncProfilesView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Sync Profiles")
+                Text(t("Sync Profiles"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("Nhóm thư mục — shuttle cả nhóm 1 click")
+                Text(t("Nhóm thư mục — shuttle cả nhóm 1 click"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -73,7 +78,7 @@ struct SyncProfilesView: View {
                 resetForm()
                 showAddProfile = true
             } label: {
-                Label("Tạo Profile", systemImage: "plus.circle.fill")
+                Label(t("Tạo Profile"), systemImage: "plus.circle.fill")
             }
             .buttonStyle(.borderedProminent)
         }
@@ -88,17 +93,17 @@ struct SyncProfilesView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.quaternary)
             
-            Text("Chưa có profile nào")
+            Text(t("Chưa có profile nào"))
                 .font(.headline)
                 .foregroundStyle(.secondary)
             
-            Text("Tạo profile để nhóm nhiều thư mục và shuttle tất cả cùng lúc")
+            Text(t("Tạo profile để nhóm nhiều thư mục và shuttle tất cả cùng lúc"))
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("Ví dụ:")
+                Text(t("Ví dụ:"))
                     .font(.caption)
                     .fontWeight(.medium)
                 
@@ -120,25 +125,25 @@ struct SyncProfilesView: View {
     
     private var addProfileSheet: some View {
         VStack(spacing: 20) {
-            Text("Tạo Sync Profile")
+            Text(t("Tạo Sync Profile"))
                 .font(.title2)
                 .fontWeight(.bold)
             
             // Name
             VStack(alignment: .leading, spacing: 6) {
-                Text("Tên profile")
+                Text(t("Tên profile"))
                     .font(.subheadline).fontWeight(.medium)
-                TextField("Ví dụ: Developer", text: $newName)
+                TextField(t("Ví dụ: Developer"), text: $newName)
                     .textFieldStyle(.roundedBorder)
             }
             
             // Direction
             VStack(alignment: .leading, spacing: 6) {
-                Text("Hướng chuyển")
+                Text(t("Hướng chuyển"))
                     .font(.subheadline).fontWeight(.medium)
                 Picker("", selection: $newDirection) {
-                    Text("Chính → Phụ (Shuttle)").tag("shuttle")
-                    Text("Phụ → Chính (Import)").tag("import")
+                    Text(t("Chính → Phụ (Shuttle)")).tag("shuttle")
+                    Text(t("Phụ → Chính (Import)")).tag("import")
                 }
                 .pickerStyle(.segmented)
             }
@@ -146,7 +151,7 @@ struct SyncProfilesView: View {
             // Items
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Thư mục (\(newItems.count))")
+                    Text("\(t("Thư mục")) (\(newItems.count))")
                         .font(.subheadline).fontWeight(.medium)
                     Spacer()
                     Button {
@@ -154,7 +159,7 @@ struct SyncProfilesView: View {
                         panel.canChooseDirectories = true
                         panel.canChooseFiles = false
                         panel.allowsMultipleSelection = true
-                        panel.message = "Chọn thư mục để thêm vào profile"
+                        panel.message = t("Chọn thư mục để thêm vào profile")
                         if panel.runModal() == .OK {
                             for url in panel.urls {
                                 if !newItems.contains(url.path) {
@@ -163,13 +168,13 @@ struct SyncProfilesView: View {
                             }
                         }
                     } label: {
-                        Label("Thêm", systemImage: "plus")
+                        Label(t("Thêm"), systemImage: "plus")
                     }
                     .controlSize(.small)
                 }
                 
                 if newItems.isEmpty {
-                    Text("Chưa có thư mục nào")
+                    Text(t("Chưa có thư mục nào"))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .padding(12)
@@ -202,12 +207,12 @@ struct SyncProfilesView: View {
             
             // Destination
             VStack(alignment: .leading, spacing: 6) {
-                Text("Đích mặc định")
+                Text(t("Đích mặc định"))
                     .font(.subheadline).fontWeight(.medium)
                 HStack {
-                    TextField("Đường dẫn đích", text: $newDestination)
+                    TextField(t("Đường dẫn đích"), text: $newDestination)
                         .textFieldStyle(.roundedBorder)
-                    Button("Chọn") {
+                    Button(t("Chọn")) {
                         let panel = NSOpenPanel()
                         panel.canChooseDirectories = true
                         panel.canChooseFiles = false
@@ -221,17 +226,17 @@ struct SyncProfilesView: View {
             
             // Auto trigger
             VStack(alignment: .leading, spacing: 6) {
-                Text("Tự động khi cắm ổ (tuỳ chọn)")
+                Text(t("Tự động khi cắm ổ (tuỳ chọn)"))
                     .font(.subheadline).fontWeight(.medium)
-                TextField("Tên ổ đĩa, ví dụ: Backup", text: $newTriggerVolume)
+                TextField(t("Tên ổ đĩa, ví dụ: Backup"), text: $newTriggerVolume)
                     .textFieldStyle(.roundedBorder)
-                Text("Profile sẽ tự chạy khi ổ này được cắm vào")
+                Text(t("Profile sẽ tự chạy khi ổ này được cắm vào"))
                     .font(.caption2).foregroundStyle(.tertiary)
             }
             
             // Color
             HStack(spacing: 8) {
-                Text("Màu:").font(.subheadline)
+                Text(t("Màu:")).font(.subheadline)
                 ForEach(colorOptions, id: \.0) { name, color in
                     Circle().fill(color).frame(width: 24, height: 24)
                         .overlay {
@@ -247,10 +252,10 @@ struct SyncProfilesView: View {
             Spacer()
             
             HStack {
-                Button("Hủy") { showAddProfile = false }
+                Button(t("Hủy")) { showAddProfile = false }
                     .buttonStyle(.bordered)
                 Spacer()
-                Button("Tạo") { saveProfile() }
+                Button(t("Tạo")) { saveProfile() }
                     .buttonStyle(.borderedProminent)
                     .disabled(newName.isEmpty || newItems.isEmpty || newDestination.isEmpty)
             }
@@ -299,8 +304,8 @@ struct SyncProfilesView: View {
             }
             
             NotificationManager.shared.send(
-                title: "Profile \"\(profile.name)\" hoàn tất",
-                body: "\(result.totalCount) thư mục: \(result.summary)",
+                title: "\(t("Profile")) \"\(profile.name)\" \(t("hoàn tất"))",
+                body: "\(result.totalCount) \(t("thư mục")): \(result.summary)",
                 identifier: "profile-exec-\(profile.name)"
             )
             
@@ -313,6 +318,7 @@ struct SyncProfilesView: View {
 // MARK: - Profile Card
 
 struct ProfileCard: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let profile: SyncProfile
     var isExecuting: Bool = false
     var executionProgress: String?
@@ -331,6 +337,10 @@ struct ProfileCard: View {
         case "cyan": return .cyan
         default: return .blue
         }
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -354,7 +364,7 @@ struct ProfileCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "bolt.fill")
                             .font(.caption2)
-                        Text("Auto: \(trigger)")
+                        Text("\(t("Auto")): \(trigger)")
                             .font(.caption)
                     }
                     .padding(.horizontal, 8)
@@ -364,7 +374,7 @@ struct ProfileCard: View {
                     .clipShape(Capsule())
                 }
                 
-                Text("\(profile.itemCount) thư mục")
+                Text("\(profile.itemCount) \(t("thư mục"))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 
@@ -376,7 +386,7 @@ struct ProfileCard: View {
                             ProgressView()
                                 .controlSize(.small)
                         } else {
-                            Label("Chạy", systemImage: "play.fill")
+                            Label(t("Chạy"), systemImage: "play.fill")
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -445,9 +455,9 @@ struct ProfileCard: View {
                 .strokeBorder(tagColor.opacity(isHovered ? 0.2 : 0.08), lineWidth: 1)
         }
         .onHover { hovering in isHovered = hovering }
-        .confirmationDialog("Xóa profile?", isPresented: $showDeleteConfirm) {
-            Button("Xóa", role: .destructive) { onDelete() }
-            Button("Hủy", role: .cancel) {}
+        .confirmationDialog(t("Xóa profile?"), isPresented: $showDeleteConfirm) {
+            Button(t("Xóa"), role: .destructive) { onDelete() }
+            Button(t("Hủy"), role: .cancel) {}
         }
     }
 }

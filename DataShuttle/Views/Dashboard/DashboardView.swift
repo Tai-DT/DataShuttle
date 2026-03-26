@@ -3,6 +3,7 @@ import SwiftData
 
 /// Main dashboard view showing storage overview
 struct DashboardView: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<ShuttleItem> { $0.statusRaw == "shuttled" })
     private var shuttledItems: [ShuttleItem]
@@ -25,6 +26,10 @@ struct DashboardView: View {
     
     private var totalSavedBytes: Int64 {
         shuttledItems.reduce(0) { $0 + $1.sizeBytes }
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -53,23 +58,23 @@ struct DashboardView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Trung tâm điều phối")
+                Text(t("Trung tâm điều phối"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("Bắt đầu nhanh với shuttle, import và kiểm tra trạng thái lưu trữ.")
+                Text(t("Bắt đầu nhanh với shuttle, import và kiểm tra trạng thái lưu trữ."))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 
                 HStack(spacing: 8) {
                     DashboardHeaderPill(
-                        title: secondaryVolumeCount == 0 ? "Chưa có ổ phụ" : "\(secondaryVolumeCount) ổ phụ sẵn sàng",
+                        title: secondaryVolumeCount == 0 ? t("Chưa có ổ phụ") : "\(secondaryVolumeCount) \(t("ổ phụ sẵn sàng"))",
                         icon: secondaryVolumeCount == 0 ? "externaldrive.badge.minus" : "externaldrive.fill",
                         color: secondaryVolumeCount == 0 ? .orange : .blue
                     )
                     
                     DashboardHeaderPill(
-                        title: "\(shuttledItems.count) thư mục đang quản lý",
+                        title: "\(shuttledItems.count) \(t("thư mục đang quản lý"))",
                         icon: "folder.fill.badge.gearshape",
                         color: .green
                     )
@@ -81,7 +86,7 @@ struct DashboardView: View {
             Button {
                 viewModel.refresh()
             } label: {
-                Label("Làm mới", systemImage: "arrow.clockwise")
+                Label(t("Làm mới"), systemImage: "arrow.clockwise")
             }
             .buttonStyle(.bordered)
         }
@@ -93,29 +98,29 @@ struct DashboardView: View {
         Group {
             if secondaryVolumeCount == 0 {
                 DashboardStatusBanner(
-                    title: "Chưa có đích lưu trữ ngoài máy",
-                    message: "Kết nối ổ ngoài hoặc dùng thư mục cloud để bắt đầu shuttle dữ liệu lớn khỏi SSD chính.",
+                    title: t("Chưa có đích lưu trữ ngoài máy"),
+                    message: t("Kết nối ổ ngoài hoặc dùng thư mục cloud để bắt đầu shuttle dữ liệu lớn khỏi SSD chính."),
                     icon: "externaldrive.badge.plus",
                     gradient: [.orange, .yellow],
-                    actionTitle: "Mở Cloud",
+                    actionTitle: t("Mở Cloud"),
                     action: onOpenCloud
                 )
             } else if shuttledItems.isEmpty {
                 DashboardStatusBanner(
-                    title: "Hệ thống đã sẵn sàng để shuttle",
-                    message: "Bạn đã có đích lưu trữ. Bước tiếp theo là chọn thư mục lớn như Downloads, Movies hoặc Library/Developer.",
+                    title: t("Hệ thống đã sẵn sàng để shuttle"),
+                    message: t("Bạn đã có đích lưu trữ. Bước tiếp theo là chọn thư mục lớn như Downloads, Movies hoặc Library/Developer."),
                     icon: "arrow.right.circle.fill",
                     gradient: [.blue, .cyan],
-                    actionTitle: "Mở Shuttle",
+                    actionTitle: t("Mở Shuttle"),
                     action: onOpenShuttle
                 )
             } else {
                 DashboardStatusBanner(
-                    title: "Luồng lưu trữ đang hoạt động ổn định",
-                    message: "Bạn đang giải phóng \(totalSavedBytes.formattedBytes) trên ổ chính. Hãy kiểm tra Health Check định kỳ để giữ symlink luôn lành.",
+                    title: t("Luồng lưu trữ đang hoạt động ổn định"),
+                    message: "\(t("Bạn đang giải phóng")) \(totalSavedBytes.formattedBytes) \(t("trên ổ chính. Hãy kiểm tra Health Check định kỳ để giữ symlink luôn lành."))",
                     icon: "checkmark.seal.fill",
                     gradient: [.green, .mint],
-                    actionTitle: "Mở Health Check",
+                    actionTitle: t("Mở Health Check"),
                     action: onOpenHealthCheck
                 )
             }
@@ -127,13 +132,13 @@ struct DashboardView: View {
     private var workflowSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Bắt đầu nhanh")
+                Text(t("Bắt đầu nhanh"))
                     .font(.title2)
                     .fontWeight(.semibold)
                 
                 Spacer()
                 
-                Text("Luồng cốt lõi")
+                Text(t("Luồng cốt lõi"))
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
@@ -143,38 +148,38 @@ struct DashboardView: View {
                 GridItem(.flexible(), spacing: 16)
             ], spacing: 16) {
                 WorkflowActionCard(
-                    title: "Đưa dữ liệu ra ổ phụ",
-                    detail: "Phân tích thư mục lớn và shuttle có kiểm soát.",
+                    title: t("Đưa dữ liệu ra ổ phụ"),
+                    detail: t("Phân tích thư mục lớn và shuttle có kiểm soát."),
                     icon: "arrow.right.circle.fill",
                     gradient: [.purple, .indigo],
-                    actionTitle: "Mở Shuttle",
+                    actionTitle: t("Mở Shuttle"),
                     action: onOpenShuttle
                 )
                 
                 WorkflowActionCard(
-                    title: "Nhập dữ liệu về máy",
-                    detail: "Kéo dữ liệu từ ổ phụ về SSD và chọn giữ hay xoá nguồn.",
+                    title: t("Nhập dữ liệu về máy"),
+                    detail: t("Kéo dữ liệu từ ổ phụ về SSD và chọn giữ hay xoá nguồn."),
                     icon: "arrow.left.circle.fill",
                     gradient: [.orange, .yellow],
-                    actionTitle: "Mở Import",
+                    actionTitle: t("Mở Import"),
                     action: onOpenImport
                 )
                 
                 WorkflowActionCard(
-                    title: "Kiểm tra liên kết",
-                    detail: "Quét symlink hỏng, phát hiện ổ bị ngắt và sửa nhanh.",
+                    title: t("Kiểm tra liên kết"),
+                    detail: t("Quét symlink hỏng, phát hiện ổ bị ngắt và sửa nhanh."),
                     icon: "stethoscope",
                     gradient: [.green, .mint],
-                    actionTitle: "Mở Health Check",
+                    actionTitle: t("Mở Health Check"),
                     action: onOpenHealthCheck
                 )
                 
                 WorkflowActionCard(
-                    title: "Dùng đích cloud",
-                    detail: "Phát hiện thư mục sync local để shuttle trực tiếp vào cloud.",
+                    title: t("Dùng đích cloud"),
+                    detail: t("Phát hiện thư mục sync local để shuttle trực tiếp vào cloud."),
                     icon: "icloud.fill",
                     gradient: [.blue, .cyan],
-                    actionTitle: "Mở Cloud",
+                    actionTitle: t("Mở Cloud"),
                     action: onOpenCloud
                 )
             }
@@ -186,32 +191,32 @@ struct DashboardView: View {
     private var quickStatsSection: some View {
         HStack(spacing: 16) {
             StatCard(
-                title: "Đã chuyển",
+                title: t("Đã chuyển"),
                 value: "\(shuttledItems.count)",
-                subtitle: "thư mục",
+                subtitle: t("thư mục"),
                 icon: "folder.fill.badge.gearshape",
                 gradient: [.blue, .cyan],
-                actionTitle: "Mở Shuttle",
+                actionTitle: t("Mở Shuttle"),
                 action: onOpenShuttle
             )
             
             StatCard(
-                title: "Tiết kiệm",
+                title: t("Tiết kiệm"),
                 value: totalSavedBytes.formattedBytes,
-                subtitle: "dung lượng ổ chính",
+                subtitle: t("dung lượng ổ chính"),
                 icon: "arrow.down.circle.fill",
                 gradient: [.green, .mint],
-                actionTitle: "Mở Phân tích",
+                actionTitle: t("Mở Phân tích"),
                 action: onOpenAnalytics
             )
             
             StatCard(
-                title: "Ổ đĩa",
+                title: t("Ổ đĩa"),
                 value: "\(viewModel.volumeManager.volumes.count)",
-                subtitle: "đang kết nối",
+                subtitle: t("đang kết nối"),
                 icon: "externaldrive.fill",
                 gradient: [.purple, .indigo],
-                actionTitle: "Mở Cloud",
+                actionTitle: t("Mở Cloud"),
                 action: onOpenCloud
             )
         }
@@ -221,7 +226,7 @@ struct DashboardView: View {
     
     private var volumesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Ổ đĩa")
+            Text(t("Ổ đĩa"))
                 .font(.title2)
                 .fontWeight(.semibold)
             
@@ -234,7 +239,7 @@ struct DashboardView: View {
                     VolumeCard(
                         volume: volume,
                         accentColor: volumeColors[index % volumeColors.count],
-                        actionTitle: "Mở Phân tích",
+                        actionTitle: t("Mở Phân tích"),
                         action: onOpenAnalytics
                     )
                 }
@@ -247,13 +252,13 @@ struct DashboardView: View {
     private var recentShuttledSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Đã chuyển gần đây")
+                Text(t("Đã chuyển gần đây"))
                     .font(.title2)
                     .fontWeight(.semibold)
                 
                 Spacer()
                 
-                Text("\(shuttledItems.count) thư mục")
+                Text("\(shuttledItems.count) \(t("thư mục"))")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -546,6 +551,7 @@ struct StatCard: View {
 // MARK: - Volume Card
 
 struct VolumeCard: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let volume: VolumeInfo
     let accentColor: Color
     let actionTitle: String?
@@ -555,6 +561,10 @@ struct VolumeCard: View {
     
     private var hasAction: Bool {
         actionTitle != nil && action != nil
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -595,10 +605,10 @@ struct VolumeCard: View {
             }
             
             VStack(spacing: 4) {
-                Text("Tổng: \(volume.totalBytes.formattedBytes)")
+                Text("\(t("Tổng")): \(volume.totalBytes.formattedBytes)")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
-                Text("Trống: \(volume.availableBytes.formattedBytes)")
+                Text("\(t("Trống")): \(volume.availableBytes.formattedBytes)")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }

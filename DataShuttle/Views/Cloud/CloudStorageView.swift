@@ -3,6 +3,7 @@ import AppKit
 
 /// Cloud storage integration view
 struct CloudStorageView: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     @State private var cloudManager = CloudStorageManager()
     @State private var selectedService: CloudStorageManager.CloudService?
     @State private var cloudAnalysis: [DiskAnalyzer.FolderAnalysis] = []
@@ -16,6 +17,10 @@ struct CloudStorageView: View {
     @State private var showDeleteError = false
     @State private var evictMessage: String?
     @State private var showEvictAlert = false
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -25,7 +30,7 @@ struct CloudStorageView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     if cloudManager.isScanning {
-                        ProgressView("Đang quét dịch vụ cloud...")
+                        ProgressView(t("Đang quét dịch vụ cloud..."))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 60)
                     } else if cloudManager.detectedServices.isEmpty {
@@ -55,11 +60,11 @@ struct CloudStorageView: View {
             }
         }
         .confirmationDialog(
-            "Xóa vĩnh viễn?",
+            t("Xóa vĩnh viễn?"),
             isPresented: $showDeleteConfirm,
             titleVisibility: .visible
         ) {
-            Button("Xóa ngay", role: .destructive) {
+            Button(t("Xóa ngay"), role: .destructive) {
                 var deleteErrors: [String] = []
                 for item in itemsToDelete {
                     do {
@@ -70,7 +75,7 @@ struct CloudStorageView: View {
                 }
                 
                 if !deleteErrors.isEmpty {
-                    deleteError = "Không thể xóa một số file:\n" + deleteErrors.joined(separator: "\n")
+                    deleteError = t("Không thể xóa một số file:") + "\n" + deleteErrors.joined(separator: "\n")
                     showDeleteError = true
                 }
                 
@@ -83,20 +88,20 @@ struct CloudStorageView: View {
                     }
                 }
             }
-            Button("Hủy", role: .cancel) {}
+            Button(t("Hủy"), role: .cancel) {}
         } message: {
             if itemsToDelete.count == 1 {
-                Text("Mục \"\(itemsToDelete.first?.name ?? "")\" sẽ bị xóa vĩnh viễn khỏi Cloud.")
+                Text("\(t("Mục")) \"\(itemsToDelete.first?.name ?? "")\" \(t("sẽ bị xóa vĩnh viễn khỏi Cloud."))")
             } else {
-                Text("\(itemsToDelete.count) mục đã chọn sẽ bị xóa vĩnh viễn khỏi Cloud.")
+                Text("\(itemsToDelete.count) \(t("mục đã chọn sẽ bị xóa vĩnh viễn khỏi Cloud."))")
             }
         }
-        .alert("Lỗi xóa file", isPresented: $showDeleteError) {
+        .alert(t("Lỗi xóa file"), isPresented: $showDeleteError) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(deleteError ?? "Đã xảy ra lỗi không xác định.")
+            Text(deleteError ?? t("Đã xảy ra lỗi không xác định."))
         }
-        .alert("Thông báo", isPresented: $showEvictAlert) {
+        .alert(t("Thông báo"), isPresented: $showEvictAlert) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(evictMessage ?? "")
@@ -108,11 +113,11 @@ struct CloudStorageView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Cloud Storage")
+                Text(t("Cloud Storage"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("Quản lý & dọn dẹp dịch vụ lưu trữ đám mây")
+                Text(t("Quản lý & dọn dẹp dịch vụ lưu trữ đám mây"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -126,7 +131,7 @@ struct CloudStorageView: View {
                     selectedService = cloudManager.detectedServices.first(where: { $0.id == selectedID }) ?? cloudManager.detectedServices.first
                 }
             } label: {
-                Label("Quét lại", systemImage: "arrow.clockwise")
+                Label(t("Quét lại"), systemImage: "arrow.clockwise")
             }
             .buttonStyle(.bordered)
         }
@@ -137,7 +142,7 @@ struct CloudStorageView: View {
     
     private var detectedServicesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Trạng thái dịch vụ cloud", systemImage: "checkmark.icloud.fill")
+            Label(t("Trạng thái dịch vụ cloud"), systemImage: "checkmark.icloud.fill")
                 .font(.headline)
                 .foregroundStyle(.blue)
             
@@ -162,7 +167,7 @@ struct CloudStorageView: View {
         VStack(alignment: .leading, spacing: 16) {
             Divider()
             
-            Label("Kiểm tra kết nối: \(service.name)", systemImage: "exclamationmark.icloud.fill")
+            Label("\(t("Kiểm tra kết nối")): \(service.name)", systemImage: "exclamationmark.icloud.fill")
                 .font(.headline)
                 .foregroundStyle(.orange)
             
@@ -178,7 +183,7 @@ struct CloudStorageView: View {
                 serviceSignalsSection(service)
                 
                 if !service.localPath.isEmpty {
-                    Text("Đường dẫn dự kiến")
+                    Text(t("Đường dẫn dự kiến"))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
@@ -195,7 +200,7 @@ struct CloudStorageView: View {
                         }
                 }
                 
-                Text("Lưu ý: app chỉ kiểm tra thư mục sync local, tiến trình đồng bộ và app desktop trên macOS; không đọc trạng thái server của nhà cung cấp.")
+                Text(t("Lưu ý: app chỉ kiểm tra thư mục sync local, tiến trình đồng bộ và app desktop trên macOS; không đọc trạng thái server của nhà cung cấp."))
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
@@ -211,7 +216,7 @@ struct CloudStorageView: View {
                                 NSWorkspace.shared.open(url)
                             }
                         } label: {
-                            Label("Đăng nhập iCloud", systemImage: "person.crop.circle")
+                            Label(t("Đăng nhập iCloud"), systemImage: "person.crop.circle")
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.blue)
@@ -220,7 +225,7 @@ struct CloudStorageView: View {
                             // Mở ứng dụng gốc để kích hoạt màn hình đăng nhập
                             NSWorkspace.shared.launchApplication(service.name)
                         } label: {
-                            Label("Mở \(service.name) để Đăng nhập", systemImage: "arrow.up.right.square")
+                            Label("\(t("Mở")) \(service.name) \(t("để Đăng nhập"))", systemImage: "arrow.up.right.square")
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.blue)
@@ -228,7 +233,7 @@ struct CloudStorageView: View {
                         Button {
                             NSWorkspace.shared.open(downloadUrl)
                         } label: {
-                            Label("Cài đặt \(service.name)", systemImage: "icloud.and.arrow.down")
+                            Label("\(t("Cài ứng dụng")) \(service.name)", systemImage: "icloud.and.arrow.down")
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
@@ -243,14 +248,14 @@ struct CloudStorageView: View {
                         }
                     }
                 } label: {
-                    Label("Kiểm tra lại", systemImage: "arrow.clockwise")
+                    Label(t("Kiểm tra lại"), systemImage: "arrow.clockwise")
                 }
                 .buttonStyle(.bordered)
                 
                 Button {
                     NSWorkspace.shared.open(URL(fileURLWithPath: "/Users/\(NSUserName())/Library/CloudStorage"))
                 } label: {
-                    Label("Mở thư mục CloudStorage", systemImage: "folder")
+                    Label(t("Mở thư mục CloudStorage"), systemImage: "folder")
                 }
                 .buttonStyle(.bordered)
             }
@@ -556,11 +561,11 @@ struct CloudStorageView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.quaternary)
             
-            Text("Không tìm thấy dịch vụ cloud")
+            Text(t("Không tìm thấy dịch vụ cloud"))
                 .font(.headline)
                 .foregroundStyle(.secondary)
             
-            Text("Hãy cài đặt iCloud Drive, Google Drive, Dropbox hoặc OneDrive để sử dụng tính năng này")
+            Text(t("Hãy cài đặt iCloud Drive, Google Drive, Dropbox hoặc OneDrive để sử dụng tính năng này"))
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
@@ -573,7 +578,7 @@ struct CloudStorageView: View {
     
     private var howItWorksSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Cách hoạt động", systemImage: "questionmark.circle")
+            Label(t("Cách hoạt động"), systemImage: "questionmark.circle")
                 .font(.headline)
             
             VStack(spacing: 0) {
