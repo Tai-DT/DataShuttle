@@ -91,22 +91,11 @@ struct ContentView: View {
         VStack(spacing: 0) {
             // App branding
             VStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.blue, .purple],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 48, height: 48)
-                    
-                    Image(systemName: "arrow.left.arrow.right.circle")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                }
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .shadow(color: .blue.opacity(0.3), radius: 8, y: 2)
                 
                 Text("DataShuttle")
                     .font(.headline)
