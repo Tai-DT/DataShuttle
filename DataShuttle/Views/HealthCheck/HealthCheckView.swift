@@ -13,6 +13,13 @@ struct HealthCheckView: View {
     @State private var fixResultMessage = ""
     @State private var fixResultIsError = false
     
+    private var scanIdentity: String {
+        shuttledItems
+            .map(\.originalPath)
+            .sorted()
+            .joined(separator: "|")
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             headerSection
@@ -22,9 +29,11 @@ struct HealthCheckView: View {
                 VStack(spacing: 20) {
                     statusOverviewCard
                     
-                    if !healthService.results.isEmpty {
+                    if healthService.isScanning {
+                        scanningState
+                    } else if !healthService.results.isEmpty {
                         resultsSection
-                    } else if !healthService.isScanning {
+                    } else {
                         emptyState
                     }
                 }
@@ -36,6 +45,9 @@ struct HealthCheckView: View {
             Button("OK") {}
         } message: {
             Text(fixResultMessage)
+        }
+        .task(id: scanIdentity) {
+            await healthService.scan(items: shuttledItems)
         }
     }
     
@@ -160,13 +172,37 @@ struct HealthCheckView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.quaternary)
             
-            Text("Nhấn \"Quét ngay\" để kiểm tra")
+            if shuttledItems.isEmpty {
+                Text("Chưa có thư mục nào đang được shuttle")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                
+                Text("Health Check sẽ tự chạy khi app đã có symlink để kiểm tra.")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            } else {
+                Text("Không có lỗi nào được phát hiện")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                
+                Text("Đã kiểm tra \(shuttledItems.count) symlink đang được DataShuttle quản lý.")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 80)
+    }
+    
+    private var scanningState: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.large)
+            Text("Đang quét \(shuttledItems.count) symlink...")
                 .font(.headline)
-                .foregroundStyle(.secondary)
-            
-            Text("DataShuttle sẽ kiểm tra \(shuttledItems.count) symlink đang quản lý")
+            Text("Màn này sẽ tự kiểm tra ngay khi bạn mở tab Health Check.")
                 .font(.subheadline)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 80)

@@ -298,7 +298,9 @@ struct ShuttleView: View {
     }
     
     private var destinationSelectionCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let availableCloudServices = cloudManager.detectedServices.filter(\.isAvailable)
+        
+        return VStack(alignment: .leading, spacing: 12) {
             Label("Bước 2: Chọn đích lưu", systemImage: "2.circle.fill")
                 .font(.headline)
                 .foregroundStyle(.purple)
@@ -329,7 +331,7 @@ struct ShuttleView: View {
             }
             
             // --- Cloud Storage ---
-            if !cloudManager.detectedServices.isEmpty {
+            if !availableCloudServices.isEmpty {
                 Text("Cloud")
                     .font(.caption)
                     .fontWeight(.semibold)
@@ -337,7 +339,7 @@ struct ShuttleView: View {
                     .padding(.top, 4)
                 
                 HStack(spacing: 12) {
-                    ForEach(cloudManager.detectedServices) { service in
+                    ForEach(availableCloudServices) { service in
                         CloudDestinationButton(
                             service: service,
                             isSelected: isCloudDestination && viewModel.shuttleDestinationPath?.contains(service.localPath) == true
@@ -361,7 +363,7 @@ struct ShuttleView: View {
             }
             
             // Trường hợp không có gì
-            if viewModel.volumeManager.secondaryVolumes.isEmpty && cloudManager.detectedServices.isEmpty {
+            if viewModel.volumeManager.secondaryVolumes.isEmpty && availableCloudServices.isEmpty {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)

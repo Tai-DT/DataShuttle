@@ -9,6 +9,7 @@ struct FolderRowView: View {
     
     @State private var isHovered = false
     @State private var showConfirm = false
+    @AppStorage("confirmBeforeShuttle") private var confirmBeforeShuttle: Bool = true
     
     var sizeColor: Color {
         if analysis.sizeBytes > 5_000_000_000 { return .red }       // > 5GB
@@ -101,7 +102,11 @@ struct FolderRowView: View {
             // Shuttle button
             if canShuttle && !analysis.isSymlink {
                 Button {
-                    showConfirm = true
+                    if confirmBeforeShuttle {
+                        showConfirm = true
+                    } else {
+                        onShuttle()
+                    }
                 } label: {
                     Label("Chuyển", systemImage: "arrow.right.circle")
                 }

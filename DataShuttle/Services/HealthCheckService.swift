@@ -1,9 +1,10 @@
 import Foundation
+import Darwin
 
 /// Scans and validates symlinks created by DataShuttle
 @MainActor
 @Observable
-class HealthCheckService {
+final class HealthCheckService {
     
     struct SymlinkStatus: Identifiable, Sendable {
         let id = UUID()
@@ -65,20 +66,12 @@ class HealthCheckService {
             var statuses: [SymlinkStatus] = []
             
             for item in itemsData {
-                let attrs = try? fm.attributesOfItem(atPath: item.originalPath)
-                let isSymlink = (attrs?[.type] as? FileAttributeType) == .typeSymbolicLink
-                let targetExists = fm.fileExists(atPath: item.destinationPath)
-                
-                let components = item.destinationPath.split(separator: "/")
-                let volumeMountPoint: String
-                if components.count >= 2 && components[0] == "Volumes" {
-                    volumeMountPoint = "/Volumes/\(components[1])"
-                } else {
-                    volumeMountPoint = "/"
-                }
+                let sourceEntry = Self.fileSystemEntryInfo(at: item.originalPath)
+                let targetExists = Self.fileSystemEntryInfo(at: item.destinationPath).exists
+                let volumeMountPoint = Self.extractVolumeMountPoint(from: item.destinationPath)
                 let isVolumeMounted = volumeMountPoint == "/" || fm.fileExists(atPath: volumeMountPoint)
                 
-                let isBroken = !isSymlink || !targetExists
+                let isBroken = !sourceEntry.exists || !sourceEntry.isSymbolicLink || !targetExists
                 
                 statuses.append(SymlinkStatus(
                     originalPath: item.originalPath,
@@ -105,9 +98,12 @@ class HealthCheckService {
         guard status.isTargetMounted else {
             throw FixError.volumeNotMounted
         }
+        guard fileManager.fileExists(atPath: status.targetPath) else {
+            throw FixError.targetNotFound
+        }
         
         // Remove broken symlink or leftover
-        if fileManager.fileExists(atPath: status.originalPath) {
+        if Self.fileSystemEntryInfo(at: status.originalPath).exists {
             try fileManager.removeItem(atPath: status.originalPath)
         }
         
@@ -130,11 +126,23 @@ class HealthCheckService {
         }
     }
     
-    private func extractVolumeMountPoint(from path: String) -> String {
+    nonisolated private static func extractVolumeMountPoint(from path: String) -> String {
         let components = path.split(separator: "/")
         if components.count >= 2 && components[0] == "Volumes" {
             return "/Volumes/\(components[1])"
         }
         return "/"
+    }
+    
+    nonisolated private static func fileSystemEntryInfo(at path: String) -> (exists: Bool, isSymbolicLink: Bool) {
+        var fileInfo = stat()
+        guard lstat(path, &fileInfo) == 0 else {
+            return (exists: false, isSymbolicLink: false)
+        }
+        
+        return (
+            exists: true,
+            isSymbolicLink: (fileInfo.st_mode & S_IFMT) == S_IFLNK
+        )
     }
 }

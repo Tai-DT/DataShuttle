@@ -2,34 +2,57 @@ import Foundation
 import UserNotifications
 
 /// Manages macOS user notifications
-class NotificationManager {
+final class NotificationManager {
     static let shared = NotificationManager()
     
     private var isAuthorized = false
+    private var didConfigureAuthorization = false
     
     private init() {}
     
+    func configureAuthorizationIfNeeded() {
+        guard !didConfigureAuthorization else { return }
+        didConfigureAuthorization = true
+        refreshAuthorizationStatus(promptIfNeeded: true)
+    }
+    
     func requestPermission() {
+        refreshAuthorizationStatus(promptIfNeeded: true)
+    }
+    
+    private func requestAuthorization() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
             DispatchQueue.main.async {
                 self?.isAuthorized = granted
             }
-            if let error = error {
-                print("⚠️ Notification permission error: \(error.localizedDescription)")
-            }
-            if granted {
-                print("✅ Notifications authorized")
-            } else {
-                print("⚠️ Notifications denied — app will work without notifications")
+            
+            if let error {
+                self?.handleAuthorizationError(error)
             }
         }
     }
     
     /// Check current authorization status and update local flag
     func refreshAuthorizationStatus() {
+        refreshAuthorizationStatus(promptIfNeeded: false)
+    }
+    
+    private func refreshAuthorizationStatus(promptIfNeeded: Bool) {
         UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
+            let isAllowed: Bool
+            switch settings.authorizationStatus {
+            case .authorized, .provisional, .ephemeral:
+                isAllowed = true
+            default:
+                isAllowed = false
+            }
+            
             DispatchQueue.main.async {
-                self?.isAuthorized = settings.authorizationStatus == .authorized
+                self?.isAuthorized = isAllowed
+            }
+            
+            if promptIfNeeded && settings.authorizationStatus == .notDetermined {
+                self?.requestAuthorization()
             }
         }
     }
@@ -49,7 +72,12 @@ class NotificationManager {
         )
         
         UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
+            if let error {
+                if self.isNotificationsNotAllowedError(error) {
+                    self.refreshAuthorizationStatus()
+                    return
+                }
+                
                 print("⚠️ Failed to deliver notification: \(error.localizedDescription)")
             }
         }
@@ -70,5 +98,18 @@ class NotificationManager {
             identifier: "transfer-failed-\(UUID().uuidString)"
         )
     }
+    
+    private func handleAuthorizationError(_ error: Error) {
+        if isNotificationsNotAllowedError(error) {
+            return
+        }
+        
+        print("⚠️ Notification permission error: \(error.localizedDescription)")
+    }
+    
+    private func isNotificationsNotAllowedError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        return nsError.domain == UNErrorDomain
+            && nsError.code == UNError.Code.notificationsNotAllowed.rawValue
+    }
 }
-

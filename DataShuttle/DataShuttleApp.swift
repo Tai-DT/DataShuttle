@@ -1,8 +1,10 @@
 import SwiftUI
 import SwiftData
+import AppKit
 
 @main
 struct DataShuttleApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var driveMonitor = DriveMonitor()
     @State private var scheduledProfileService = FileShuttleService()
     
@@ -13,17 +15,10 @@ struct DataShuttleApp: App {
             SyncProfile.self,
             StorageSnapshot.self,
         ])
-        
-        let appSupportDir = URL.applicationSupportDirectory
-        let storeDir = appSupportDir.appending(path: "DataShuttleDB")
-        
-        // Ensure directory exists to fix "fopen failed for data file: errno = 2"
-        try? FileManager.default.createDirectory(at: storeDir, withIntermediateDirectories: true, attributes: nil)
-        
-        let storeURL = storeDir.appending(path: "DataShuttle.sqlite")
-        let modelConfiguration = ModelConfiguration(schema: schema, url: storeURL)
 
         do {
+            let storeURL = try makeStoreURL()
+            let modelConfiguration = ModelConfiguration(schema: schema, url: storeURL)
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
@@ -34,7 +29,7 @@ struct DataShuttleApp: App {
         WindowGroup {
             ContentView()
                 .onAppear {
-                    NotificationManager.shared.requestPermission()
+                    NotificationManager.shared.configureAuthorizationIfNeeded()
                     driveMonitor.startMonitoring()
                     setupScheduledShuttle()
                 }
@@ -49,6 +44,23 @@ struct DataShuttleApp: App {
                 .modelContainer(sharedModelContainer)
         }
         .menuBarExtraStyle(.window)
+    }
+    
+    private static func makeStoreURL() throws -> URL {
+        let fileManager = FileManager.default
+        
+        guard let applicationSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        
+        let storeDirectoryURL = applicationSupportURL.appendingPathComponent("DataShuttleDB", isDirectory: true)
+        
+        try fileManager.createDirectory(
+            at: storeDirectoryURL,
+            withIntermediateDirectories: true
+        )
+        
+        return storeDirectoryURL.appendingPathComponent("DataShuttle.sqlite", isDirectory: false)
     }
     
     private func setupScheduledShuttle() {
@@ -169,6 +181,16 @@ struct MenuBarView: View {
         .onAppear {
             volumeManager.refreshVolumes()
         }
+    }
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func application(_ application: NSApplication, shouldSaveApplicationState coder: NSCoder) -> Bool {
+        false
+    }
+    
+    func application(_ application: NSApplication, shouldRestoreApplicationState coder: NSCoder) -> Bool {
+        false
     }
 }
 

@@ -7,9 +7,15 @@ struct CloudStorageView: View {
     @State private var selectedService: CloudStorageManager.CloudService?
     @State private var cloudAnalysis: [DiskAnalyzer.FolderAnalysis] = []
     @State private var isAnalyzing = false
-    @State private var itemToDelete: DiskAnalyzer.FolderAnalysis?
+    @State private var itemsToDelete: [DiskAnalyzer.FolderAnalysis] = []
     @State private var showDeleteConfirm = false
+    @State private var isSelectionMode = false
+    @State private var selectedItems: Set<String> = []
     @State private var copiedPath = false
+    @State private var deleteError: String?
+    @State private var showDeleteError = false
+    @State private var evictMessage: String?
+    @State private var showEvictAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -28,7 +34,11 @@ struct CloudStorageView: View {
                         detectedServicesSection
                         
                         if let selected = selectedService {
-                            cloudCleanupSection(selected)
+                            if selected.isAvailable {
+                                cloudCleanupSection(selected)
+                            } else {
+                                unavailableServiceSection(selected)
+                            }
                         }
                         
                         howItWorksSection
@@ -40,6 +50,9 @@ struct CloudStorageView: View {
         .background(Color(.windowBackgroundColor))
         .task {
             await cloudManager.detectCloudServices()
+            if selectedService == nil {
+                selectedService = cloudManager.detectedServices.first
+            }
         }
         .confirmationDialog(
             "Xóa vĩnh viễn?",
@@ -47,19 +60,46 @@ struct CloudStorageView: View {
             titleVisibility: .visible
         ) {
             Button("Xóa ngay", role: .destructive) {
-                if let item = itemToDelete {
-                    try? cloudManager.deleteItem(at: item.path)
-                    // Refresh analysis after delete
-                    if let selected = selectedService {
-                        Task {
-                            cloudAnalysis = await cloudManager.analyzeCloudContents(at: selected.localPath)
-                        }
+                var deleteErrors: [String] = []
+                for item in itemsToDelete {
+                    do {
+                        try cloudManager.deleteItem(at: item.path)
+                    } catch {
+                        deleteErrors.append("\(item.name): \(error.localizedDescription)")
+                    }
+                }
+                
+                if !deleteErrors.isEmpty {
+                    deleteError = "Không thể xóa một số file:\n" + deleteErrors.joined(separator: "\n")
+                    showDeleteError = true
+                }
+                
+                // Refresh analysis after delete
+                if let selected = selectedService {
+                    Task {
+                        cloudAnalysis = await cloudManager.analyzeCloudContents(at: selected.localPath)
+                        selectedItems.removeAll()
+                        isSelectionMode = false
                     }
                 }
             }
             Button("Hủy", role: .cancel) {}
         } message: {
-            Text("Mục \"\(itemToDelete?.name ?? "")\" sẽ bị xóa vĩnh viễn khỏi Cloud.")
+            if itemsToDelete.count == 1 {
+                Text("Mục \"\(itemsToDelete.first?.name ?? "")\" sẽ bị xóa vĩnh viễn khỏi Cloud.")
+            } else {
+                Text("\(itemsToDelete.count) mục đã chọn sẽ bị xóa vĩnh viễn khỏi Cloud.")
+            }
+        }
+        .alert("Lỗi xóa file", isPresented: $showDeleteError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(deleteError ?? "Đã xảy ra lỗi không xác định.")
+        }
+        .alert("Thông báo", isPresented: $showEvictAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(evictMessage ?? "")
         }
     }
     
@@ -81,7 +121,9 @@ struct CloudStorageView: View {
             
             Button {
                 Task {
+                    let selectedID = selectedService?.id
                     await cloudManager.detectCloudServices()
+                    selectedService = cloudManager.detectedServices.first(where: { $0.id == selectedID }) ?? cloudManager.detectedServices.first
                 }
             } label: {
                 Label("Quét lại", systemImage: "arrow.clockwise")
@@ -95,7 +137,7 @@ struct CloudStorageView: View {
     
     private var detectedServicesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Dịch vụ đã phát hiện", systemImage: "checkmark.icloud.fill")
+            Label("Trạng thái dịch vụ cloud", systemImage: "checkmark.icloud.fill")
                 .font(.headline)
                 .foregroundStyle(.blue)
             
@@ -113,6 +155,136 @@ struct CloudStorageView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private func unavailableServiceSection(_ service: CloudStorageManager.CloudService) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Divider()
+            
+            Label("Kiểm tra kết nối: \(service.name)", systemImage: "exclamationmark.icloud.fill")
+                .font(.headline)
+                .foregroundStyle(.orange)
+            
+            VStack(alignment: .leading, spacing: 10) {
+                Text(service.statusTitle)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Text(service.statusDetail)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                
+                serviceSignalsSection(service)
+                
+                if !service.localPath.isEmpty {
+                    Text("Đường dẫn dự kiến")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+                
+                if !service.localPath.isEmpty {
+                    Text(service.localPath)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .padding(10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(.quaternary.opacity(0.4))
+                        }
+                }
+                
+                Text("Lưu ý: app chỉ kiểm tra thư mục sync local, tiến trình đồng bộ và app desktop trên macOS; không đọc trạng thái server của nhà cung cấp.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            
+            HStack(spacing: 12) {
+                if !service.isAvailable {
+                    if service.id == "icloud" {
+                        Button {
+                            // Mở System Settings -> Apple ID
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.AppleIDSettings") {
+                                NSWorkspace.shared.open(url)
+                            } else if let url = URL(string: "x-apple.systempreferences:com.apple.preferences.AppleID") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        } label: {
+                            Label("Đăng nhập iCloud", systemImage: "person.crop.circle")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                    } else if service.isDesktopAppInstalled {
+                        Button {
+                            // Mở ứng dụng gốc để kích hoạt màn hình đăng nhập
+                            NSWorkspace.shared.launchApplication(service.name)
+                        } label: {
+                            Label("Mở \(service.name) để Đăng nhập", systemImage: "arrow.up.right.square")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                    } else if let downloadUrl = urlForDownloading(service.id) {
+                        Button {
+                            NSWorkspace.shared.open(downloadUrl)
+                        } label: {
+                            Label("Cài đặt \(service.name)", systemImage: "icloud.and.arrow.down")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                    }
+                }
+                
+                Button {
+                    Task {
+                        await cloudManager.detectCloudServices()
+                        if let refreshed = cloudManager.detectedServices.first(where: { $0.id == service.id }) {
+                            selectedService = refreshed
+                        }
+                    }
+                } label: {
+                    Label("Kiểm tra lại", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.bordered)
+                
+                Button {
+                    NSWorkspace.shared.open(URL(fileURLWithPath: "/Users/\(NSUserName())/Library/CloudStorage"))
+                } label: {
+                    Label("Mở thư mục CloudStorage", systemImage: "folder")
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding(20)
+        .background {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.03), radius: 8, y: 4)
+        }
+    }
+    
+    private func serviceSignalsSection(_ service: CloudStorageManager.CloudService) -> some View {
+        VStack(spacing: 10) {
+            SignalRow(
+                title: "App desktop",
+                value: service.isDesktopAppInstalled ? "Đã phát hiện" : "Chưa thấy",
+                icon: service.isDesktopAppInstalled ? "app.badge.checkmark" : "app.dashed",
+                tint: service.isDesktopAppInstalled ? .green : .orange
+            )
+            
+            SignalRow(
+                title: "Tiến trình sync",
+                value: service.isSyncProcessRunning ? "Đang chạy" : "Không thấy",
+                icon: service.isSyncProcessRunning ? "bolt.horizontal.circle.fill" : "bolt.horizontal.circle",
+                tint: service.isSyncProcessRunning ? .green : .orange
+            )
+            
+            SignalRow(
+                title: "Thư mục sync local",
+                value: service.isAvailable ? "Sẵn sàng" : service.doesSyncFolderExist ? "Có nhưng không đọc được" : "Chưa phát hiện",
+                icon: service.isAvailable ? "folder.badge.checkmark" : service.doesSyncFolderExist ? "folder.badge.questionmark" : "folder.badge.minus",
+                tint: service.isAvailable ? .green : .orange
+            )
         }
     }
     
@@ -156,14 +328,184 @@ struct CloudStorageView: View {
                 .disabled(isAnalyzing)
             }
             
+            VStack(alignment: .leading, spacing: 10) {
+                Label(service.statusTitle, systemImage: service.statusSymbol)
+                    .font(.subheadline)
+                    .foregroundStyle(statusColor(for: service))
+                
+                Text(service.statusDetail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                serviceSignalsSection(service)
+            }
+            .padding(14)
+            .background {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.quaternary.opacity(0.18))
+            }
+            
             if !cloudAnalysis.isEmpty {
                 let sorted = Array(cloudAnalysis.sorted(by: { $0.sizeBytes > $1.sizeBytes }).prefix(15))
+                
+                // Total size summary
+                let totalBytes = cloudAnalysis.reduce(Int64(0)) { $0 + $1.sizeBytes }
+                HStack {
+                    Label("Tổng dung lượng", systemImage: "chart.pie.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(totalBytes.formattedBytes)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(.blue.opacity(0.08))
+                }
+                
+                // Selection Toolbar
+                HStack {
+                    Label("Các thư mục chiếm dụng", systemImage: "folder.badge.minus")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+                    
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isSelectionMode.toggle()
+                            selectedItems.removeAll()
+                        }
+                    } label: {
+                        Text(isSelectionMode ? "Hủy chọn" : "Chọn nhiều")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.borderless)
+                    
+                    if isSelectionMode {
+                        Button {
+                            if selectedItems.count == sorted.count {
+                                selectedItems.removeAll()
+                            } else {
+                                selectedItems = Set(sorted.map { $0.path })
+                            }
+                        } label: {
+                            Text(selectedItems.count == sorted.count ? "Bỏ chọn tất cả" : "Chọn tất cả")
+                                .font(.caption)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+                .padding(.horizontal, 4)
+                .padding(.top, 8)
+                
+                if isSelectionMode && !selectedItems.isEmpty {
+                    VStack(spacing: 8) {
+                        Button(role: .destructive) {
+                            itemsToDelete = cloudAnalysis.filter { selectedItems.contains($0.path) }
+                            showDeleteConfirm = true
+                        } label: {
+                            Label("Xóa vĩnh viễn \(selectedItems.count) mục", systemImage: "trash.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                        .controlSize(.large)
+                        
+                        Button {
+                            let itemsToEvict = cloudAnalysis.filter { selectedItems.contains($0.path) }
+                            var successCount = 0
+                            var errorCount = 0
+                            for item in itemsToEvict {
+                                do {
+                                    try cloudManager.evictItem(at: item.path)
+                                    successCount += 1
+                                } catch {
+                                    errorCount += 1
+                                }
+                            }
+                            if errorCount > 0 {
+                                evictMessage = "Đã yêu cầu đẩy \(successCount) mục lên online. Có \(errorCount) mục thất bại (có thể chưa tải xong hoặc file không hợp lệ)."
+                            } else {
+                                evictMessage = "Đã yêu cầu OS đẩy \(successCount) mục lên online thành công. Bạn sẽ thấy biểu tượng đám mây xuất hiện ở Finder."
+                            }
+                            showEvictAlert = true
+                        } label: {
+                            Label("Tải lên Online (Free up space)", systemImage: "icloud.and.arrow.up")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        
+                        Button {
+                            let itemsToDownload = cloudAnalysis.filter { selectedItems.contains($0.path) }
+                            var successCount = 0
+                            var errorCount = 0
+                            for item in itemsToDownload {
+                                do {
+                                    try cloudManager.downloadItem(at: item.path)
+                                    successCount += 1
+                                } catch {
+                                    errorCount += 1
+                                }
+                            }
+                            if errorCount > 0 {
+                                evictMessage = "Yêu cầu tải về \(successCount) mục. Có \(errorCount) mục thất bại."
+                            } else {
+                                evictMessage = "Đã yêu cầu OS tải về \(successCount) mục để lưu Offline."
+                            }
+                            showEvictAlert = true
+                        } label: {
+                            Label("Tải về máy (Keep Offline)", systemImage: "icloud.and.arrow.down")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .tint(.green)
+                    }
+                    .padding(.vertical, 4)
+                }
+                
                 VStack(spacing: 8) {
                     ForEach(sorted) { item in
-                        CloudItemRow(item: item) {
-                            itemToDelete = item
-                            showDeleteConfirm = true
-                        }
+                        CloudItemRow(
+                            item: item,
+                            isSelectionMode: isSelectionMode,
+                            isSelected: selectedItems.contains(item.path),
+                            onToggleSelect: {
+                                if selectedItems.contains(item.path) {
+                                    selectedItems.remove(item.path)
+                                } else {
+                                    selectedItems.insert(item.path)
+                                }
+                            },
+                            onEvict: {
+                                do {
+                                    try cloudManager.evictItem(at: item.path)
+                                    evictMessage = "Đã yêu cầu OS đẩy mục này lên online.\nXin chờ 1 chút để Finder cập nhật trạng thái."
+                                } catch {
+                                    evictMessage = "Không thể đẩy lên online: \(error.localizedDescription)"
+                                }
+                                showEvictAlert = true
+                            },
+                            onDownload: {
+                                do {
+                                    try cloudManager.downloadItem(at: item.path)
+                                    evictMessage = "Đã yêu cầu OS tải mục này về lưu Offline.\nXin chờ 1 chút để dữ liệu được tải xong."
+                                } catch {
+                                    evictMessage = "Không thể tải về: \(error.localizedDescription)"
+                                }
+                                showEvictAlert = true
+                            },
+                            onDelete: {
+                                itemsToDelete = [item]
+                                showDeleteConfirm = true
+                            }
+                        )
                     }
                 }
                 .padding(4)
@@ -250,6 +592,34 @@ struct CloudStorageView: View {
             }
         }
     }
+    
+    // MARK: - Helpers
+    
+    // MARK: - Helpers
+    
+    private func urlForDownloading(_ serviceID: String) -> URL? {
+        switch serviceID.lowercased() {
+        case "googledrive", "gdrive": return URL(string: "https://www.google.com/drive/download/")
+        case "dropbox": return URL(string: "https://www.dropbox.com/install")
+        case "onedrive": return URL(string: "macappstore://apps.apple.com/app/onedrive/id823766827")
+        default: return nil
+        }
+    }
+    
+    private func statusColor(for service: CloudStorageManager.CloudService) -> Color {
+        switch service.status {
+        case .connected:
+            return .green
+        case .syncFolderDetected:
+            return .orange
+        case .appDetected:
+            return .yellow
+        case .permissionIssue:
+            return .red
+        case .unavailable:
+            return .gray
+        }
+    }
 }
 
 // MARK: - Cloud Service Card
@@ -289,12 +659,18 @@ struct CloudServiceCard: View {
                         .font(.callout)
                         .fontWeight(.semibold)
                     
-                    Text(service.isAvailable ? "Đã kết nối" : "Không khả dụng")
+                    Text(service.statusTitle)
                         .font(.caption)
-                        .foregroundStyle(service.isAvailable ? .green : .red)
+                        .foregroundStyle(service.isAvailable ? .green : .orange)
                 }
                 
                 Spacer()
+                
+                if service.isAvailable {
+                    Text(service.usedBytes.formattedBytes)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
@@ -329,14 +705,54 @@ struct CloudServiceCard: View {
 
 // MARK: - Helper Views
 
+struct SignalRow: View {
+    let title: String
+    let value: String
+    let icon: String
+    let tint: Color
+    
+    var body: some View {
+        HStack {
+            Label(title, systemImage: icon)
+                .foregroundStyle(tint)
+            Spacer()
+            Text(value)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
 struct CloudItemRow: View {
     let item: DiskAnalyzer.FolderAnalysis
+    var isSelectionMode: Bool = false
+    var isSelected: Bool = false
+    var onToggleSelect: (() -> Void)? = nil
+    var onEvict: (() -> Void)? = nil
+    var onDownload: (() -> Void)? = nil
     let onDelete: () -> Void
+    
+    private var isDirectory: Bool {
+        var isDir: ObjCBool = false
+        return FileManager.default.fileExists(atPath: item.path, isDirectory: &isDir) && isDir.boolValue
+    }
     
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "folder.fill")
-                .foregroundStyle(.blue)
+            if isSelectionMode {
+                Button {
+                    onToggleSelect?()
+                } label: {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(isSelected ? Color.blue : Color.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            
+            Image(systemName: isDirectory ? "folder.fill" : "doc.fill")
+                .foregroundStyle(isDirectory ? .blue : .secondary)
                 .frame(width: 24)
             
             Text(item.name)
@@ -350,15 +766,43 @@ struct CloudItemRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 70, alignment: .trailing)
             
-            Button(role: .destructive, action: onDelete) {
-                Image(systemName: "trash")
-                    .font(.caption)
+            if !isSelectionMode {
+                Button {
+                    onDownload?()
+                } label: {
+                    Image(systemName: "icloud.and.arrow.down")
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.green)
+                .padding(6)
+                .background(.green.opacity(0.1))
+                .clipShape(Circle())
+                .help("Tải về máy (Keep Offline)")
+                
+                Button {
+                    onEvict?()
+                } label: {
+                    Image(systemName: "icloud.and.arrow.up")
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.blue)
+                .padding(6)
+                .background(.blue.opacity(0.1))
+                .clipShape(Circle())
+                .help("Giải phóng dung lượng (Online-only)")
+                
+                Button(role: .destructive, action: onDelete) {
+                    Image(systemName: "trash")
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
+                .padding(6)
+                .background(.red.opacity(0.1))
+                .clipShape(Circle())
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.red)
-            .padding(6)
-            .background(.red.opacity(0.1))
-            .clipShape(Circle())
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)

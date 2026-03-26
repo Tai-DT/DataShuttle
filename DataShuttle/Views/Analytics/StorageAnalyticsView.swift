@@ -24,6 +24,7 @@ struct StorageAnalyticsView: View {
                 VStack(spacing: 24) {
                     savingsOverview
                     storageBreakdownChart
+                    snapshotTrendChart
                     shuttledItemsChart
                     volumeComparisonChart
                 }
@@ -127,6 +128,43 @@ struct StorageAnalyticsView: View {
                     )
                     .foregroundStyle(.green.opacity(0.3).gradient)
                     .cornerRadius(6)
+                }
+                .chartYAxisLabel("GB")
+                .frame(height: 250)
+                .padding(16)
+                .background {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(.ultraThinMaterial)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Snapshot Trend Chart
+    
+    private var snapshotTrendChart: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Biến động dung lượng", systemImage: "chart.line.uptrend.xyaxis")
+                .font(.headline)
+            
+            if snapshots.count < 2 {
+                Text("Chưa đủ dữ liệu để vẽ biểu đồ (cần ít nhất 2 lần ghi nhận)")
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 200)
+            } else {
+                Chart(snapshots.reversed()) { snap in
+                    LineMark(
+                        x: .value("Thời gian", snap.date),
+                        y: .value("Đã dùng", Double(snap.usedBytes) / 1_073_741_824)
+                    )
+                    .foregroundStyle(by: .value("Ổ đĩa", snap.volumeName))
+                    .interpolationMethod(.monotone)
+                    
+                    PointMark(
+                        x: .value("Thời gian", snap.date),
+                        y: .value("Đã dùng", Double(snap.usedBytes) / 1_073_741_824)
+                    )
+                    .foregroundStyle(by: .value("Ổ đĩa", snap.volumeName))
                 }
                 .chartYAxisLabel("GB")
                 .frame(height: 250)
