@@ -107,9 +107,9 @@ struct SyncProfilesView: View {
                     .font(.caption)
                     .fontWeight(.medium)
                 
-                ProfileExample(name: "Developer", items: ["~/Developer", "~/node_modules", "~/.cocoapods"])
-                ProfileExample(name: "Media", items: ["~/Movies", "~/Music", "~/Pictures"])
-                ProfileExample(name: "Creative", items: ["~/Figma", "~/Adobe", "~/Blender"])
+                ProfileExample(name: t("Developer"), items: ["~/Developer", "~/node_modules", "~/.cocoapods"])
+                ProfileExample(name: t("Media"), items: ["~/Movies", "~/Music", "~/Pictures"])
+                ProfileExample(name: t("Creative"), items: ["~/Figma", "~/Adobe", "~/Blender"])
             }
             .padding(16)
             .background {

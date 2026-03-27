@@ -85,15 +85,15 @@ final class NotificationManager {
     
     func sendTransferComplete(folderName: String, direction: String) {
         send(
-            title: "✅ Chuyển thành công",
-            body: "\"\(folderName)\" đã được \(direction) hoàn tất.",
+            title: L10n.tr("✅ Chuyển thành công"),
+            body: L10n.formatted("\"%@\" đã được %@ hoàn tất.", folderName, direction),
             identifier: "transfer-complete-\(UUID().uuidString)"
         )
     }
     
     func sendTransferFailed(folderName: String, error: String) {
         send(
-            title: "❌ Chuyển thất bại",
+            title: L10n.tr("❌ Chuyển thất bại"),
             body: "\"\(folderName)\": \(error)",
             identifier: "transfer-failed-\(UUID().uuidString)"
         )

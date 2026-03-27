@@ -222,8 +222,7 @@ struct CloudStorageView: View {
                         .tint(.blue)
                     } else if service.isDesktopAppInstalled {
                         Button {
-                            // Mở ứng dụng gốc để kích hoạt màn hình đăng nhập
-                            NSWorkspace.shared.launchApplication(service.name)
+                            openDesktopCloudApp(service)
                         } label: {
                             Label("\(t("Mở")) \(service.name) \(t("để Đăng nhập"))", systemImage: "arrow.up.right.square")
                         }
@@ -434,9 +433,9 @@ struct CloudStorageView: View {
                                 }
                             }
                             if errorCount > 0 {
-                                evictMessage = "Đã yêu cầu đẩy \(successCount) mục lên online. Có \(errorCount) mục thất bại (có thể chưa tải xong hoặc file không hợp lệ)."
+                                evictMessage = String(format: L10n.tr("Đã yêu cầu đẩy %lld mục lên online. Có %lld mục thất bại (có thể chưa tải xong hoặc file không hợp lệ)."), Int64(successCount), Int64(errorCount))
                             } else {
-                                evictMessage = "Đã yêu cầu OS đẩy \(successCount) mục lên online thành công. Bạn sẽ thấy biểu tượng đám mây xuất hiện ở Finder."
+                                evictMessage = String(format: L10n.tr("Đã yêu cầu OS đẩy %lld mục lên online thành công. Bạn sẽ thấy biểu tượng đám mây xuất hiện ở Finder."), Int64(successCount))
                             }
                             showEvictAlert = true
                         } label: {
@@ -459,9 +458,9 @@ struct CloudStorageView: View {
                                 }
                             }
                             if errorCount > 0 {
-                                evictMessage = "Yêu cầu tải về \(successCount) mục. Có \(errorCount) mục thất bại."
+                                evictMessage = String(format: L10n.tr("Yêu cầu tải về %lld mục. Có %lld mục thất bại."), Int64(successCount), Int64(errorCount))
                             } else {
-                                evictMessage = "Đã yêu cầu OS tải về \(successCount) mục để lưu Offline."
+                                evictMessage = String(format: L10n.tr("Đã yêu cầu OS tải về %lld mục để lưu Offline."), Int64(successCount))
                             }
                             showEvictAlert = true
                         } label: {
@@ -491,18 +490,18 @@ struct CloudStorageView: View {
                             onEvict: {
                                 do {
                                     try cloudManager.evictItem(at: item.path)
-                                    evictMessage = "Đã yêu cầu OS đẩy mục này lên online.\nXin chờ 1 chút để Finder cập nhật trạng thái."
+                                    evictMessage = L10n.tr("Đã yêu cầu OS đẩy mục này lên online.\nXin chờ 1 chút để Finder cập nhật trạng thái.")
                                 } catch {
-                                    evictMessage = "Không thể đẩy lên online: \(error.localizedDescription)"
+                                    evictMessage = String(format: L10n.tr("Không thể đẩy lên online: %@"), error.localizedDescription)
                                 }
                                 showEvictAlert = true
                             },
                             onDownload: {
                                 do {
                                     try cloudManager.downloadItem(at: item.path)
-                                    evictMessage = "Đã yêu cầu OS tải mục này về lưu Offline.\nXin chờ 1 chút để dữ liệu được tải xong."
+                                    evictMessage = L10n.tr("Đã yêu cầu OS tải mục này về lưu Offline.\nXin chờ 1 chút để dữ liệu được tải xong.")
                                 } catch {
-                                    evictMessage = "Không thể tải về: \(error.localizedDescription)"
+                                    evictMessage = String(format: L10n.tr("Không thể tải về: %@"), error.localizedDescription)
                                 }
                                 showEvictAlert = true
                             },
@@ -608,6 +607,46 @@ struct CloudStorageView: View {
         case "dropbox": return URL(string: "https://www.dropbox.com/install")
         case "onedrive": return URL(string: "macappstore://apps.apple.com/app/onedrive/id823766827")
         default: return nil
+        }
+    }
+
+    private func openDesktopCloudApp(_ service: CloudStorageManager.CloudService) {
+        let bundleIDs: [String: [String]] = [
+            "googledrive": ["com.google.drivefs"],
+            "dropbox": ["com.getdropbox.dropbox"],
+            "onedrive": ["com.microsoft.OneDrive"]
+        ]
+
+        let workspace = NSWorkspace.shared
+        let openConfiguration = NSWorkspace.OpenConfiguration()
+
+        if let candidates = bundleIDs[service.id.lowercased()] {
+            for bundleID in candidates {
+                if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
+                    workspace.openApplication(at: appURL, configuration: openConfiguration) { _, _ in }
+                    return
+                }
+            }
+        }
+
+        let appNames: [String: String] = [
+            "googledrive": "Google Drive.app",
+            "dropbox": "Dropbox.app",
+            "onedrive": "OneDrive.app"
+        ]
+
+        if let appName = appNames[service.id.lowercased()] {
+            let userApps = "/Users/\(NSUserName())/Applications/\(appName)"
+            let paths = [
+                "/Applications/\(appName)",
+                userApps
+            ]
+            for path in paths {
+                if FileManager.default.fileExists(atPath: path) {
+                    workspace.openApplication(at: URL(fileURLWithPath: path), configuration: openConfiguration) { _, _ in }
+                    return
+                }
+            }
         }
     }
     

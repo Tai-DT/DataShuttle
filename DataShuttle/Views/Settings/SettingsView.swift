@@ -34,8 +34,8 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
 
                         Picker(L10n.tr("Ngôn ngữ", languageCode: appLanguage), selection: $appLanguage) {
-                            ForEach(AppLanguage.allCases) { language in
-                                Text(language.displayName)
+                            ForEach(AppLanguage.selectableCases) { language in
+                                Text("\(language.flag) \(language.displayName)")
                                     .tag(language.rawValue)
                             }
                         }

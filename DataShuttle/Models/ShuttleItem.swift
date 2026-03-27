@@ -49,10 +49,10 @@ enum ShuttleStatus: String, CaseIterable {
     
     var displayName: String {
         switch self {
-        case .shuttled: return "Đã chuyển"
-        case .restored: return "Đã khôi phục"
-        case .transferring: return "Đang chuyển"
-        case .error: return "Lỗi"
+        case .shuttled: return L10n.tr("Đã chuyển")
+        case .restored: return L10n.tr("Đã khôi phục")
+        case .transferring: return L10n.tr("Đang chuyển")
+        case .error: return L10n.tr("Lỗi")
         }
     }
     

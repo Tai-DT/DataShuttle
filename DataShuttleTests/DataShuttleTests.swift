@@ -5,6 +5,61 @@ import Testing
 struct DataShuttleTests {
 
     @Test
+    func localization_listsOnlyLanguagesWithActualTranslations() {
+        let languages = AppLanguage.selectableCases.map(\.rawValue)
+
+        #expect(languages == ["system", "vi", "en", "es", "fr", "de", "pt-BR", "ru", "zh-Hans", "ja", "ko", "hi", "ar"])
+    }
+
+    @Test
+    func localization_translatesEnglishKeys() {
+        #expect(L10n.tr("Cài đặt", languageCode: "en") == "Settings")
+        #expect(L10n.tr("Tổng quan", languageCode: "en") == "Overview")
+        #expect(L10n.tr("Ngôn ngữ", languageCode: "en") == "Language")
+    }
+
+    @Test
+    func localization_translatesAdvertisedLanguages() {
+        let expectedSettings = [
+            "es": "Configuración",
+            "fr": "Paramètres",
+            "de": "Einstellungen",
+            "pt-BR": "Configurações",
+            "ru": "Настройки",
+            "zh-Hans": "设置",
+            "ja": "設定",
+            "ko": "설정",
+            "hi": "सेटिंग्स",
+            "ar": "الإعدادات",
+        ]
+
+        for (languageCode, expectedValue) in expectedSettings {
+            #expect(L10n.tr("Cài đặt", languageCode: languageCode) == expectedValue)
+        }
+    }
+
+    @Test
+    func localization_formattersFollowSavedAppLanguage() {
+        let defaults = UserDefaults.standard
+        let previousLanguage = defaults.string(forKey: L10n.languageStorageKey)
+        defer {
+            if let previousLanguage {
+                defaults.set(previousLanguage, forKey: L10n.languageStorageKey)
+            } else {
+                defaults.removeObject(forKey: L10n.languageStorageKey)
+            }
+        }
+
+        defaults.set("en", forKey: L10n.languageStorageKey)
+        let englishRelative = Date().addingTimeInterval(-3600).relativeString.lowercased()
+
+        defaults.set("vi", forKey: L10n.languageStorageKey)
+        let vietnameseRelative = Date().addingTimeInterval(-3600).relativeString.lowercased()
+
+        #expect(englishRelative != vietnameseRelative)
+    }
+
+    @Test
     @MainActor
     func detectCloudServices_listsKnownProvidersAndFindsGoogleDrive() async throws {
         let fileManager = FileManager.default

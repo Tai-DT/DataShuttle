@@ -24,16 +24,16 @@ class FileShuttleService {
         
         var errorDescription: String? {
             switch self {
-            case .sourceNotFound: return "Thư mục nguồn không tồn tại"
-            case .destinationExists: return "Thư mục đích đã tồn tại"
-            case .insufficientSpace: return "Không đủ dung lượng ổ đích"
-            case .symlinkFailed: return "Không thể tạo symlink"
-            case .copyFailed(let msg): return "Lỗi copy: \(msg)"
-            case .restoreFailed(let msg): return "Lỗi khôi phục: \(msg)"
-            case .permissionDenied: return "Không có quyền truy cập"
-            case .alreadySymlink: return "Thư mục này đã là symlink"
-            case .verifyFailed: return "Dữ liệu đích không khớp với nguồn — hủy xóa để bảo vệ dữ liệu"
-            case .transferCancelled: return "Đã hủy chuyển"
+            case .sourceNotFound: return L10n.tr("Thư mục nguồn không tồn tại")
+            case .destinationExists: return L10n.tr("Thư mục đích đã tồn tại")
+            case .insufficientSpace: return L10n.tr("Không đủ dung lượng ổ đích")
+            case .symlinkFailed: return L10n.tr("Không thể tạo symlink")
+            case .copyFailed(let msg): return L10n.formatted("Lỗi copy: %@", msg)
+            case .restoreFailed(let msg): return L10n.formatted("Lỗi khôi phục: %@", msg)
+            case .permissionDenied: return L10n.tr("Không có quyền truy cập")
+            case .alreadySymlink: return L10n.tr("Thư mục này đã là symlink")
+            case .verifyFailed: return L10n.tr("Dữ liệu đích không khớp với nguồn — hủy xóa để bảo vệ dữ liệu")
+            case .transferCancelled: return L10n.tr("Đã hủy chuyển")
             }
         }
     }
@@ -227,7 +227,7 @@ class FileShuttleService {
             
             // Step 2: Copy with progress on background
             job.status = .inProgress
-            job.statusDetail = "Đang sao chép file..."
+            job.statusDetail = L10n.tr("Đang sao chép file...")
             onProgress(job)
             
             let srcURL = sourceURL
@@ -242,7 +242,7 @@ class FileShuttleService {
             }.value
             
             // Step 3: Verify integrity on background
-            job.statusDetail = "Đang kiểm tra toàn vẹn dữ liệu..."
+            job.statusDetail = L10n.tr("Đang kiểm tra toàn vẹn dữ liệu...")
             onProgress(job)
             let isValid = await Task.detached { [self] in
                 self.verifyIntegrity(source: srcURL, destination: dstURL)
@@ -252,13 +252,13 @@ class FileShuttleService {
             }
             
             // Step 4: Remove original
-            job.statusDetail = "Đang xóa thư mục gốc..."
+            job.statusDetail = L10n.tr("Đang xóa thư mục gốc...")
             onProgress(job)
             try fileManager.removeItem(at: sourceURL)
             
             // Step 5: Create symlink
             job.status = .creatingSymlink
-            job.statusDetail = "Đang tạo symlink..."
+            job.statusDetail = L10n.tr("Đang tạo symlink...")
             onProgress(job)
             
             try fileManager.createSymbolicLink(
@@ -268,7 +268,7 @@ class FileShuttleService {
             
             // Done
             job.status = .completed
-            job.statusDetail = "Hoàn thành!"
+            job.statusDetail = L10n.tr("Hoàn thành!")
             job.currentFile = nil
             onProgress(job)
             
@@ -321,7 +321,7 @@ class FileShuttleService {
         do {
             // Remove symlink
             job.status = .inProgress
-            job.statusDetail = "Đang xóa symlink..."
+            job.statusDetail = L10n.tr("Đang xóa symlink...")
             onProgress(job)
             
             if fileManager.fileExists(atPath: item.originalPath) {
@@ -329,7 +329,7 @@ class FileShuttleService {
             }
             
             // Copy back with progress on background
-            job.statusDetail = "Đang sao chép về ổ chính..."
+            job.statusDetail = L10n.tr("Đang sao chép về ổ chính...")
             onProgress(job)
             
             let srcURL = destinationURL
@@ -344,7 +344,7 @@ class FileShuttleService {
             }.value
             
             // Verify on background
-            job.statusDetail = "Đang kiểm tra toàn vẹn..."
+            job.statusDetail = L10n.tr("Đang kiểm tra toàn vẹn...")
             onProgress(job)
             let isValid = await Task.detached { [self] in
                 self.verifyIntegrity(source: srcURL, destination: dstURL)
@@ -354,12 +354,12 @@ class FileShuttleService {
             }
             
             // Remove source on external
-            job.statusDetail = "Đang dọn dẹp ổ phụ..."
+            job.statusDetail = L10n.tr("Đang dọn dẹp ổ phụ...")
             onProgress(job)
             try fileManager.removeItem(at: destinationURL)
             
             job.status = .completed
-            job.statusDetail = "Hoàn thành!"
+            job.statusDetail = L10n.tr("Hoàn thành!")
             job.currentFile = nil
             onProgress(job)
             
@@ -417,7 +417,7 @@ class FileShuttleService {
             
             // Copy with progress on background
             job.status = .inProgress
-            job.statusDetail = "Đang sao chép về ổ chính..."
+            job.statusDetail = L10n.tr("Đang sao chép về ổ chính...")
             onProgress(job)
             
             let srcURL = sourceURL
@@ -433,7 +433,7 @@ class FileShuttleService {
             
             if deleteSource {
                 // Verify on background
-                job.statusDetail = "Đang kiểm tra toàn vẹn..."
+                job.statusDetail = L10n.tr("Đang kiểm tra toàn vẹn...")
                 onProgress(job)
                 let isValid = await Task.detached { [self] in
                     self.verifyIntegrity(source: srcURL, destination: dstURL)
@@ -442,13 +442,13 @@ class FileShuttleService {
                     throw ShuttleError.verifyFailed
                 }
                 
-                job.statusDetail = "Đang xóa nguồn..."
+                job.statusDetail = L10n.tr("Đang xóa nguồn...")
                 onProgress(job)
                 try fileManager.removeItem(at: sourceURL)
                 
                 if createSymlink {
                     job.status = .creatingSymlink
-                    job.statusDetail = "Đang tạo symlink..."
+                    job.statusDetail = L10n.tr("Đang tạo symlink...")
                     onProgress(job)
                     try fileManager.createSymbolicLink(
                         atPath: sourcePath,
@@ -458,7 +458,7 @@ class FileShuttleService {
             }
             
             job.status = .completed
-            job.statusDetail = "Hoàn thành!"
+            job.statusDetail = L10n.tr("Hoàn thành!")
             job.currentFile = nil
             onProgress(job)
             
@@ -481,7 +481,7 @@ class FileShuttleService {
     func cancelJob(_ job: TransferJob) {
         job.isCancelled = true
         job.status = .cancelled
-        job.statusDetail = "Đã hủy"
+        job.statusDetail = L10n.tr("Đã hủy")
     }
     
     func clearCompletedJobs() {
@@ -506,7 +506,7 @@ struct SyncProfileExecutionResult: Sendable {
     let failureCount: Int
     
     var summary: String {
-        failureCount == 0 ? "thành công" : "\(successCount) OK, \(failureCount) lỗi"
+        failureCount == 0 ? L10n.tr("Hoàn thành") : L10n.formatted("%lld OK, %lld lỗi", Int64(successCount), Int64(failureCount))
     }
 }
 

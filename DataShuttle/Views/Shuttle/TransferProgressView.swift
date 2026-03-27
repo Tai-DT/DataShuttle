@@ -71,7 +71,7 @@ struct TransferProgressView: View {
                     .help(t("Hiện trong Finder"))
                 }
                 
-                Text(job.status.rawValue)
+                Text(job.status.displayName)
                     .font(.caption)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -190,7 +190,7 @@ struct TransferProgressView: View {
                 )
                 job.transferredBytes = 2_500_000_000
                 job.status = .inProgress
-                job.statusDetail = "Đang sao chép file..."
+                job.statusDetail = L10n.tr("Đang sao chép file...")
                 job.currentFile = "project/src/App.swift"
                 return job
             }()
@@ -206,7 +206,7 @@ struct TransferProgressView: View {
                 )
                 job.transferredBytes = 10_000_000_000
                 job.status = .completed
-                job.statusDetail = "Hoàn thành!"
+                job.statusDetail = L10n.tr("Hoàn thành!")
                 return job
             }()
         )

@@ -13,8 +13,15 @@ class DriveMonitor {
         let timestamp: Date
         
         enum EventType: String {
-            case mounted = "Đã kết nối"
-            case unmounted = "Đã ngắt"
+            case mounted
+            case unmounted
+            
+            var displayName: String {
+                switch self {
+                case .mounted: return L10n.tr("Đã kết nối")
+                case .unmounted: return L10n.tr("Đã ngắt")
+                }
+            }
         }
     }
     
@@ -58,8 +65,8 @@ class DriveMonitor {
             self?.onDriveMount?(name, mountPoint)
             
             NotificationManager.shared.send(
-                title: "Ổ đĩa đã kết nối",
-                body: "Ổ \"\(name)\" đã được cắm vào máy.",
+                title: L10n.tr("Ổ đĩa đã kết nối"),
+                body: L10n.formatted("Ổ \"%@\" đã được cắm vào máy.", name),
                 identifier: "drive-mount-\(name)"
             )
         }
@@ -83,8 +90,8 @@ class DriveMonitor {
             self?.onDriveUnmount?(name)
             
             NotificationManager.shared.send(
-                title: "⚠️ Ổ đĩa đã ngắt",
-                body: "Ổ \"\(name)\" đã bị ngắt kết nối. Một số symlink có thể bị ảnh hưởng.",
+                title: L10n.tr("⚠️ Ổ đĩa đã ngắt"),
+                body: L10n.formatted("Ổ \"%@\" đã bị ngắt kết nối. Một số symlink có thể bị ảnh hưởng.", name),
                 identifier: "drive-unmount-\(name)"
             )
         }

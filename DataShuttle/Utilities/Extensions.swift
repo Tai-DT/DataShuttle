@@ -22,17 +22,17 @@ extension Int64 {
         }
         
         if unitIndex == 0 {
-            return String(format: "%.0f %@", size, units[unitIndex])
-        } else {
-            return String(format: "%.1f %@", size, units[unitIndex])
+            return String(format: "%.0f %@", locale: L10n.currentLocale(), size, units[unitIndex])
         }
+
+        return String(format: "%.1f %@", locale: L10n.currentLocale(), size, units[unitIndex])
     }
 }
 
 extension Double {
     /// Format as percentage string
     var percentageString: String {
-        return String(format: "%.1f%%", self * 100)
+        String(format: "%.1f%%", locale: L10n.currentLocale(), self * 100)
     }
 }
 
@@ -40,6 +40,7 @@ extension Date {
     /// Relative time string
     var relativeString: String {
         let formatter = RelativeDateTimeFormatter()
+        formatter.locale = L10n.currentLocale()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: self, relativeTo: Date())
     }

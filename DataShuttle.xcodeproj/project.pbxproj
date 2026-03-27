@@ -187,10 +187,21 @@
 				};
 			};
 			buildConfigurationList = 33DB1D542F74C8B100526BA5 /* Build configuration list for PBXProject "DataShuttle" */;
-			developmentRegion = en;
+			developmentRegion = vi;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				vi,
 				en,
+				es,
+				fr,
+				de,
+				"pt-BR",
+				ru,
+				"zh-Hans",
+				ja,
+				ko,
+				hi,
+				ar,
 				Base,
 			);
 			mainGroup = 33DB1D502F74C8B100526BA5;

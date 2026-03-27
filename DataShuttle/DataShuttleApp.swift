@@ -82,12 +82,14 @@ struct DataShuttleApp: App {
             
             Task {
                 for profile in matching {
-                    let autoStartTitle = String(
-                        format: L10n.tr("⚡ Auto Shuttle: %@", languageCode: appLanguage),
+                    let autoStartTitle = L10n.formatted(
+                        "⚡ Auto Shuttle: %@",
+                        languageCode: appLanguage,
                         profile.name
                     )
-                    let autoStartBody = String(
-                        format: L10n.tr("Ổ \"%@\" đã cắm — đang chạy profile tự động.", languageCode: appLanguage),
+                    let autoStartBody = L10n.formatted(
+                        "Ổ \"%@\" đã cắm — đang chạy profile tự động.",
+                        languageCode: appLanguage,
                         volumeName
                     )
 
@@ -102,12 +104,14 @@ struct DataShuttleApp: App {
                         modelContext: context
                     )
                     
-                    let autoCompleteTitle = String(
-                        format: L10n.tr("✅ Auto Shuttle xong: %@", languageCode: appLanguage),
+                    let autoCompleteTitle = L10n.formatted(
+                        "✅ Auto Shuttle xong: %@",
+                        languageCode: appLanguage,
                         profile.name
                     )
-                    let autoCompleteBody = String(
-                        format: L10n.tr("%d thư mục: %@", languageCode: appLanguage),
+                    let autoCompleteBody = L10n.formatted(
+                        "%d thư mục: %@",
+                        languageCode: appLanguage,
                         result.totalCount,
                         result.summary
                     )
@@ -152,7 +156,11 @@ struct MenuBarView: View {
             
             // Quick stats
             VStack(spacing: 8) {
-                MenuBarStatRow(icon: "folder.fill", label: L10n.tr("Đang quản lý", languageCode: appLanguage), value: "\(shuttledItems.count) thư mục")
+                MenuBarStatRow(
+                    icon: "folder.fill",
+                    label: L10n.tr("Đang quản lý", languageCode: appLanguage),
+                    value: "\(shuttledItems.count) \(L10n.tr("thư mục", languageCode: appLanguage))"
+                )
                 MenuBarStatRow(icon: "arrow.down.heart.fill", label: L10n.tr("Đã tiết kiệm", languageCode: appLanguage), value: totalSaved.formattedBytes)
                 MenuBarStatRow(icon: "externaldrive.fill", label: L10n.tr("Ổ kết nối", languageCode: appLanguage), value: "\(volumeManager.volumes.count)")
             }

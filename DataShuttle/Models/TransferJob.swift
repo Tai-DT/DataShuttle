@@ -43,12 +43,23 @@ class TransferJob: Identifiable, @unchecked Sendable {
 }
 
 enum TransferStatus: String, Sendable {
-    case pending = "Đang chờ"
-    case inProgress = "Đang chuyển"
-    case creatingSymlink = "Tạo symlink"
-    case completed = "Hoàn thành"
-    case failed = "Thất bại"
-    case cancelled = "Đã hủy"
+    case pending = "pending"
+    case inProgress = "inProgress"
+    case creatingSymlink = "creatingSymlink"
+    case completed = "completed"
+    case failed = "failed"
+    case cancelled = "cancelled"
+    
+    var displayName: String {
+        switch self {
+        case .pending: return L10n.tr("Đang chờ")
+        case .inProgress: return L10n.tr("Đang chuyển")
+        case .creatingSymlink: return L10n.tr("Tạo symlink")
+        case .completed: return L10n.tr("Hoàn thành")
+        case .failed: return L10n.tr("Thất bại")
+        case .cancelled: return L10n.tr("Đã hủy")
+        }
+    }
     
     var iconName: String {
         switch self {

@@ -160,11 +160,33 @@ struct ContentView: View {
             
             Spacer()
             
-            // Version info
-            VStack(spacing: 4) {
+            // Language switcher
+            VStack(spacing: 8) {
                 Divider()
                     .padding(.horizontal, 16)
                 
+                HStack(spacing: 8) {
+                    Image(systemName: "globe")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    Picker("", selection: $appLanguage) {
+                        ForEach(AppLanguage.selectableCases) { language in
+                            Text("\(language.flag) \(language.displayName)")
+                                .tag(language.rawValue)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .controlSize(.small)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 4)
+            }
+            
+            // Version info
+            VStack(spacing: 4) {
                 VStack(spacing: 2) {
                     Text("v1.1.0")
                         .font(.caption2)

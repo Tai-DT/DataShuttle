@@ -36,6 +36,6 @@ class SyncProfile {
     var itemCount: Int { items.count }
     
     var directionLabel: String {
-        direction == "shuttle" ? "Chính → Phụ" : "Phụ → Chính"
+        direction == "shuttle" ? L10n.tr("Chính → Phụ") : L10n.tr("Phụ → Chính")
     }
 }

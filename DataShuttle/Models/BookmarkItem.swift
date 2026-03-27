@@ -62,8 +62,8 @@ enum BookmarkDirection: String, CaseIterable {
     
     var displayName: String {
         switch self {
-        case .shuttle: return "Chính → Phụ"
-        case .importToMain: return "Phụ → Chính"
+        case .shuttle: return L10n.tr("Chính → Phụ")
+        case .importToMain: return L10n.tr("Phụ → Chính")
         }
     }
     

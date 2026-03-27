@@ -230,8 +230,8 @@ final class CloudStorageManager {
                     isSyncProcessRunning: false,
                     isFolderReadable: isReadable,
                     status: isReadable ? .connected : .permissionIssue,
-                    statusTitle: isReadable ? "Đã phát hiện thư mục sync" : "Không đọc được thư mục sync",
-                    statusDetail: isReadable ? "Đã phát hiện dịch vụ cloud chưa định danh, có thể dùng làm đích shuttle." : "Có thư mục cloud nhưng app không có quyền đọc.",
+                    statusTitle: isReadable ? L10n.tr("Đã phát hiện thư mục sync") : L10n.tr("Không đọc được thư mục sync"),
+                    statusDetail: isReadable ? L10n.tr("Đã phát hiện dịch vụ cloud chưa định danh, có thể dùng làm đích shuttle.") : L10n.tr("Có thư mục cloud nhưng app không có quyền đọc."),
                     statusSymbol: isReadable ? "checkmark.icloud.fill" : "exclamationmark.triangle.fill"
                 )
             }
@@ -312,8 +312,8 @@ final class CloudStorageManager {
         if folderExists && !folderReadable {
             return (
                 .permissionIssue,
-                "Có thư mục sync nhưng không đọc được",
-                "DataShuttle thấy thư mục local của \(service.name), nhưng chưa có quyền truy cập hoặc thư mục đang lỗi.",
+                L10n.tr("Có thư mục sync nhưng không đọc được"),
+                String(format: L10n.tr("DataShuttle thấy thư mục local của %@, nhưng chưa có quyền truy cập hoặc thư mục đang lỗi."), service.name),
                 "exclamationmark.triangle.fill"
             )
         }
@@ -321,8 +321,8 @@ final class CloudStorageManager {
         if folderReadable && (isProcessRunning || service.isSystemManaged) {
             return (
                 .connected,
-                "Đã kết nối cục bộ",
-                "Phát hiện thư mục sync local và tiến trình đồng bộ của \(service.name).",
+                L10n.tr("Đã kết nối cục bộ"),
+                String(format: L10n.tr("Phát hiện thư mục sync local và tiến trình đồng bộ của %@."), service.name),
                 "checkmark.icloud.fill"
             )
         }
@@ -330,8 +330,8 @@ final class CloudStorageManager {
         if folderReadable {
             return (
                 .syncFolderDetected,
-                "Có thư mục sync local",
-                "Phát hiện thư mục sync local của \(service.name), nhưng chưa thấy tiến trình đồng bộ đang chạy.",
+                L10n.tr("Có thư mục sync local"),
+                String(format: L10n.tr("Phát hiện thư mục sync local của %@, nhưng chưa thấy tiến trình đồng bộ đang chạy."), service.name),
                 "folder.badge.questionmark"
             )
         }
@@ -339,16 +339,16 @@ final class CloudStorageManager {
         if isDesktopAppInstalled || isProcessRunning {
             return (
                 .appDetected,
-                "Có app nhưng chưa thấy thư mục sync",
-                "Đã phát hiện ứng dụng hoặc tiến trình của \(service.name), nhưng chưa thấy thư mục sync local khả dụng.",
+                L10n.tr("Có app nhưng chưa thấy thư mục sync"),
+                String(format: L10n.tr("Đã phát hiện ứng dụng hoặc tiến trình của %@, nhưng chưa thấy thư mục sync local khả dụng."), service.name),
                 "app.badge.checkmark"
             )
         }
         
         return (
             .unavailable,
-            "Chưa phát hiện trên máy",
-            "Chưa thấy ứng dụng, tiến trình nền hoặc thư mục sync local của \(service.name).",
+            L10n.tr("Chưa phát hiện trên máy"),
+            String(format: L10n.tr("Chưa thấy ứng dụng, tiến trình nền hoặc thư mục sync local của %@."), service.name),
             "icloud.slash"
         )
     }

@@ -35,11 +35,11 @@ struct VolumeInfo: Identifiable, Hashable {
     
     var displayType: String {
         if isMainDrive {
-            return "Ổ đĩa chính"
+            return L10n.tr("Ổ đĩa chính")
         } else if isRemovable {
-            return "Ổ đĩa ngoài"
+            return L10n.tr("Ổ đĩa ngoài")
         } else {
-            return "Ổ đĩa phụ"
+            return L10n.tr("Ổ đĩa phụ")
         }
     }
 }

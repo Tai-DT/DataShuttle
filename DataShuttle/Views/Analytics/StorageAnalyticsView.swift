@@ -121,15 +121,15 @@ struct StorageAnalyticsView: View {
             } else {
                 Chart(volumeManager.volumes) { volume in
                     BarMark(
-                        x: .value("Ổ đĩa", volume.name),
-                        y: .value("Đã dùng", Double(volume.usedBytes) / 1_073_741_824)
+                        x: .value(L10n.tr("Ổ đĩa"), volume.name),
+                        y: .value(L10n.tr("Đã dùng"), Double(volume.usedBytes) / 1_073_741_824)
                     )
                     .foregroundStyle(.blue.gradient)
                     .cornerRadius(6)
                     
                     BarMark(
-                        x: .value("Ổ đĩa", volume.name),
-                        y: .value("Trống", Double(volume.availableBytes) / 1_073_741_824)
+                        x: .value(L10n.tr("Ổ đĩa"), volume.name),
+                        y: .value(L10n.tr("Trống"), Double(volume.availableBytes) / 1_073_741_824)
                     )
                     .foregroundStyle(.green.opacity(0.3).gradient)
                     .cornerRadius(6)
@@ -159,17 +159,17 @@ struct StorageAnalyticsView: View {
             } else {
                 Chart(snapshots.reversed()) { snap in
                     LineMark(
-                        x: .value("Thời gian", snap.date),
-                        y: .value("Đã dùng", Double(snap.usedBytes) / 1_073_741_824)
+                        x: .value(L10n.tr("Thời gian"), snap.date),
+                        y: .value(L10n.tr("Đã dùng"), Double(snap.usedBytes) / 1_073_741_824)
                     )
-                    .foregroundStyle(by: .value("Ổ đĩa", snap.volumeName))
+                    .foregroundStyle(by: .value(L10n.tr("Ổ đĩa"), snap.volumeName))
                     .interpolationMethod(.monotone)
                     
                     PointMark(
-                        x: .value("Thời gian", snap.date),
-                        y: .value("Đã dùng", Double(snap.usedBytes) / 1_073_741_824)
+                        x: .value(L10n.tr("Thời gian"), snap.date),
+                        y: .value(L10n.tr("Đã dùng"), Double(snap.usedBytes) / 1_073_741_824)
                     )
-                    .foregroundStyle(by: .value("Ổ đĩa", snap.volumeName))
+                    .foregroundStyle(by: .value(L10n.tr("Ổ đĩa"), snap.volumeName))
                 }
                 .chartYAxisLabel("GB")
                 .frame(height: 250)

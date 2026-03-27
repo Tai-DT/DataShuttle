@@ -18,11 +18,11 @@ final class HealthCheckService {
         
         var statusLabel: String {
             if isBroken && !isTargetMounted {
-                return "Ổ phụ chưa kết nối"
+                return L10n.tr("Ổ phụ chưa kết nối")
             } else if isBroken {
-                return "Symlink hỏng"
+                return L10n.tr("Symlink hỏng")
             }
-            return "Hoạt động tốt"
+            return L10n.tr("Hoạt động tốt")
         }
     }
     
@@ -120,8 +120,8 @@ final class HealthCheckService {
         
         var errorDescription: String? {
             switch self {
-            case .volumeNotMounted: return "Ổ phụ chưa được kết nối. Hãy cắm ổ rồi thử lại."
-            case .targetNotFound: return "Thư mục đích không tồn tại."
+            case .volumeNotMounted: return L10n.tr("Ổ phụ chưa được kết nối. Hãy cắm ổ rồi thử lại.")
+            case .targetNotFound: return L10n.tr("Thư mục đích không tồn tại.")
             }
         }
     }

@@ -20,9 +20,9 @@ struct ShuttleView: View {
     @State private var isCloudDestination = false
     
     enum ShuttleTab: String, CaseIterable {
-        case shuttle = "Chuyển"
-        case managed = "Đang quản lý"
-        case history = "Lịch sử"
+        case shuttle = "shuttle"
+        case managed = "managed"
+        case history = "history"
     }
 
     private func t(_ key: String) -> String {
@@ -91,7 +91,7 @@ struct ShuttleView: View {
                             selectedTab = tab
                         }
                     } label: {
-                        Text(t(tab.rawValue))
+                        Text(tab == .shuttle ? t("Chuyển") : tab == .managed ? t("Đang quản lý") : t("Lịch sử"))
                             .font(.subheadline)
                             .fontWeight(selectedTab == tab ? .semibold : .regular)
                             .foregroundStyle(selectedTab == tab ? .primary : .secondary)
