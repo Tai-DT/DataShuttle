@@ -41,12 +41,12 @@ struct ImportView: View {
         }
         .background(Color(.windowBackgroundColor))
         .alert(t("Lỗi"), isPresented: $viewModel.showError) {
-            Button("OK") {}
+            Button(t("OK")) {}
         } message: {
             Text(viewModel.errorMessage ?? t("Đã xảy ra lỗi"))
         }
         .alert(t("Thành công"), isPresented: $viewModel.showSuccess) {
-            Button("OK") {}
+            Button(t("OK")) {}
         } message: {
             Text(viewModel.successMessage ?? t("Hoàn thành"))
         }
@@ -592,7 +592,7 @@ struct ImportFolderRow: View {
                     .fontWeight(.medium)
                 
                 HStack(spacing: 12) {
-                    Label("\(analysis.fileCount) files", systemImage: "doc")
+                    Label("\(analysis.fileCount) \(t("mục"))", systemImage: "doc")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     

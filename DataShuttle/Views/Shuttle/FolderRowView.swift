@@ -61,7 +61,7 @@ struct FolderRowView: View {
                 }
                 
                 HStack(spacing: 12) {
-                    Label("\(analysis.fileCount) files", systemImage: "doc")
+                    Label("\(analysis.fileCount) \(t("mục"))", systemImage: "doc")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     

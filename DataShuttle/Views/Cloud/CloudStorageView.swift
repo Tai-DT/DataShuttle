@@ -97,12 +97,12 @@ struct CloudStorageView: View {
             }
         }
         .alert(t("Lỗi xóa file"), isPresented: $showDeleteError) {
-            Button("OK", role: .cancel) {}
+            Button(t("OK"), role: .cancel) {}
         } message: {
             Text(deleteError ?? t("Đã xảy ra lỗi không xác định."))
         }
         .alert(t("Thông báo"), isPresented: $showEvictAlert) {
-            Button("OK", role: .cancel) {}
+            Button(t("OK"), role: .cancel) {}
         } message: {
             Text(evictMessage ?? "")
         }
@@ -271,22 +271,22 @@ struct CloudStorageView: View {
     private func serviceSignalsSection(_ service: CloudStorageManager.CloudService) -> some View {
         VStack(spacing: 10) {
             SignalRow(
-                title: "App desktop",
-                value: service.isDesktopAppInstalled ? "Đã phát hiện" : "Chưa thấy",
+                title: t("App desktop"),
+                value: service.isDesktopAppInstalled ? t("Đã phát hiện") : t("Chưa thấy"),
                 icon: service.isDesktopAppInstalled ? "app.badge.checkmark" : "app.dashed",
                 tint: service.isDesktopAppInstalled ? .green : .orange
             )
             
             SignalRow(
-                title: "Tiến trình sync",
-                value: service.isSyncProcessRunning ? "Đang chạy" : "Không thấy",
+                title: t("Tiến trình sync"),
+                value: service.isSyncProcessRunning ? t("Đang chạy") : t("Không thấy"),
                 icon: service.isSyncProcessRunning ? "bolt.horizontal.circle.fill" : "bolt.horizontal.circle",
                 tint: service.isSyncProcessRunning ? .green : .orange
             )
             
             SignalRow(
-                title: "Thư mục sync local",
-                value: service.isAvailable ? "Sẵn sàng" : service.doesSyncFolderExist ? "Có nhưng không đọc được" : "Chưa phát hiện",
+                title: t("Thư mục sync local"),
+                value: service.isAvailable ? t("Sẵn sàng") : service.doesSyncFolderExist ? t("Có nhưng không đọc được") : t("Chưa phát hiện"),
                 icon: service.isAvailable ? "folder.badge.checkmark" : service.doesSyncFolderExist ? "folder.badge.questionmark" : "folder.badge.minus",
                 tint: service.isAvailable ? .green : .orange
             )
@@ -300,13 +300,13 @@ struct CloudStorageView: View {
             Divider()
             
             HStack {
-                Label("Dọn dẹp & Phân tích: \(service.name)", systemImage: "trash.fill")
+                Label("\(t("Dọn dẹp & Phân tích")): \(service.name)", systemImage: "trash.fill")
                     .font(.headline)
                 
                 Spacer()
                 
                 if !cloudAnalysis.isEmpty {
-                    Text("\(cloudAnalysis.count) mục")
+                    Text("\(cloudAnalysis.count) \(t("mục"))")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 8)
@@ -324,9 +324,9 @@ struct CloudStorageView: View {
                 } label: {
                     if isAnalyzing {
                         ProgressView().controlSize(.small).padding(.trailing, 4)
-                        Text("Đang phân tích...")
+                        Text(t("Đang phân tích..."))
                     } else {
-                        Label("Phân tích Cloud", systemImage: "magnifyingglass")
+                        Label(t("Phân tích Cloud"), systemImage: "magnifyingglass")
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -356,7 +356,7 @@ struct CloudStorageView: View {
                 // Total size summary
                 let totalBytes = cloudAnalysis.reduce(Int64(0)) { $0 + $1.sizeBytes }
                 HStack {
-                    Label("Tổng dung lượng", systemImage: "chart.pie.fill")
+                    Label(t("Tổng dung lượng"), systemImage: "chart.pie.fill")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -374,7 +374,7 @@ struct CloudStorageView: View {
                 
                 // Selection Toolbar
                 HStack {
-                    Label("Các thư mục chiếm dụng", systemImage: "folder.badge.minus")
+                    Label(t("Các thư mục chiếm dụng"), systemImage: "folder.badge.minus")
                         .font(.subheadline)
                         .fontWeight(.semibold)
                     
@@ -386,7 +386,7 @@ struct CloudStorageView: View {
                             selectedItems.removeAll()
                         }
                     } label: {
-                        Text(isSelectionMode ? "Hủy chọn" : "Chọn nhiều")
+                        Text(isSelectionMode ? t("Hủy chọn") : t("Chọn nhiều"))
                             .font(.caption)
                     }
                     .buttonStyle(.borderless)
@@ -399,7 +399,7 @@ struct CloudStorageView: View {
                                 selectedItems = Set(sorted.map { $0.path })
                             }
                         } label: {
-                            Text(selectedItems.count == sorted.count ? "Bỏ chọn tất cả" : "Chọn tất cả")
+                            Text(selectedItems.count == sorted.count ? t("Bỏ chọn tất cả") : t("Chọn tất cả"))
                                 .font(.caption)
                         }
                         .buttonStyle(.borderless)
@@ -414,7 +414,7 @@ struct CloudStorageView: View {
                             itemsToDelete = cloudAnalysis.filter { selectedItems.contains($0.path) }
                             showDeleteConfirm = true
                         } label: {
-                            Label("Xóa vĩnh viễn \(selectedItems.count) mục", systemImage: "trash.fill")
+                            Label("\(t("Xóa vĩnh viễn")) \(selectedItems.count) \(t("mục"))", systemImage: "trash.fill")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
@@ -440,7 +440,7 @@ struct CloudStorageView: View {
                             }
                             showEvictAlert = true
                         } label: {
-                            Label("Tải lên Online (Free up space)", systemImage: "icloud.and.arrow.up")
+                            Label(t("Tải lên Online (Free up space)"), systemImage: "icloud.and.arrow.up")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
@@ -465,7 +465,7 @@ struct CloudStorageView: View {
                             }
                             showEvictAlert = true
                         } label: {
-                            Label("Tải về máy (Keep Offline)", systemImage: "icloud.and.arrow.down")
+                            Label(t("Tải về máy (Keep Offline)"), systemImage: "icloud.and.arrow.down")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
@@ -515,7 +515,7 @@ struct CloudStorageView: View {
                 }
                 .padding(4)
             } else if !isAnalyzing {
-                Text("Nhấn 'Phân tích Cloud' để tìm các thư mục lớn đang chiếm chỗ trên \(service.name)")
+                Text("\(t("Nhấn 'Phân tích Cloud' để tìm các thư mục lớn đang chiếm chỗ trên")) \(service.name)")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -533,14 +533,14 @@ struct CloudStorageView: View {
                     copiedPath = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedPath = false }
                 } label: {
-                    Label(copiedPath ? "Đã dán!" : "Copy đường dẫn", systemImage: copiedPath ? "checkmark.circle.fill" : "doc.on.doc")
+                    Label(copiedPath ? t("Đã dán!") : t("Copy đường dẫn"), systemImage: copiedPath ? "checkmark.circle.fill" : "doc.on.doc")
                 }
                 .buttonStyle(.bordered)
                 
                 Button {
                     NSWorkspace.shared.open(URL(fileURLWithPath: service.localPath))
                 } label: {
-                    Label("Mở trong Finder", systemImage: "folder")
+                    Label(t("Mở trong Finder"), systemImage: "folder")
                 }
                 .buttonStyle(.bordered)
             }
@@ -582,13 +582,13 @@ struct CloudStorageView: View {
                 .font(.headline)
             
             VStack(spacing: 0) {
-                StepRow(number: 1, text: "DataShuttle phát hiện thư mục sync local của cloud", icon: "magnifyingglass")
+                StepRow(number: 1, text: t("DataShuttle phát hiện thư mục sync local của cloud"), icon: "magnifyingglass")
                 Divider().padding(.leading, 48)
-                StepRow(number: 2, text: "Shuttle thư mục vào đó (giống shuttle sang ổ ngoài)", icon: "arrow.right.circle")
+                StepRow(number: 2, text: t("Shuttle thư mục vào đó (giống shuttle sang ổ ngoài)"), icon: "arrow.right.circle")
                 Divider().padding(.leading, 48)
-                StepRow(number: 3, text: "Cloud tự đồng bộ lên server → truy cập mọi nơi", icon: "icloud.and.arrow.up")
+                StepRow(number: 3, text: t("Cloud tự đồng bộ lên server → truy cập mọi nơi"), icon: "icloud.and.arrow.up")
                 Divider().padding(.leading, 48)
-                StepRow(number: 4, text: "Symlink giữ app hoạt động bình thường trên máy", icon: "link")
+                StepRow(number: 4, text: t("Symlink giữ app hoạt động bình thường trên máy"), icon: "link")
             }
             .padding(16)
             .background {
@@ -730,6 +730,7 @@ struct SignalRow: View {
 }
 
 struct CloudItemRow: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let item: DiskAnalyzer.FolderAnalysis
     var isSelectionMode: Bool = false
     var isSelected: Bool = false
@@ -737,6 +738,10 @@ struct CloudItemRow: View {
     var onEvict: (() -> Void)? = nil
     var onDownload: (() -> Void)? = nil
     let onDelete: () -> Void
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     private var isDirectory: Bool {
         var isDir: ObjCBool = false
@@ -783,7 +788,7 @@ struct CloudItemRow: View {
                 .padding(6)
                 .background(.green.opacity(0.1))
                 .clipShape(Circle())
-                .help("Tải về máy (Keep Offline)")
+                .help(t("Tải về máy (Keep Offline)"))
                 
                 Button {
                     onEvict?()
@@ -796,7 +801,7 @@ struct CloudItemRow: View {
                 .padding(6)
                 .background(.blue.opacity(0.1))
                 .clipShape(Circle())
-                .help("Giải phóng dung lượng (Online-only)")
+                .help(t("Giải phóng dung lượng (Online-only)"))
                 
                 Button(role: .destructive, action: onDelete) {
                     Image(systemName: "trash")

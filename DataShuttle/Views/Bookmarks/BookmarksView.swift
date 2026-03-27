@@ -53,12 +53,12 @@ struct BookmarksView: View {
             addBookmarkSheet
         }
         .alert(t("Lỗi"), isPresented: $viewModel.showError) {
-            Button("OK") {}
+            Button(t("OK")) {}
         } message: {
             Text(viewModel.errorMessage ?? t("Đã xảy ra lỗi"))
         }
         .alert(t("Thành công"), isPresented: $viewModel.showSuccess) {
-            Button("OK") {}
+            Button(t("OK")) {}
         } message: {
             Text(viewModel.successMessage ?? t("Hoàn thành"))
         }

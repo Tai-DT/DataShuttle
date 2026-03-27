@@ -47,7 +47,7 @@ struct HealthCheckView: View {
         }
         .background(Color(.windowBackgroundColor))
         .alert(fixResultIsError ? t("Lỗi") : t("Thành công"), isPresented: $showFixResult) {
-            Button("OK") {}
+            Button(t("OK")) {}
         } message: {
             Text(fixResultMessage)
         }
@@ -263,9 +263,14 @@ struct HealthStatCard: View {
 // MARK: - Symlink Status Row
 
 struct SymlinkStatusRow: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let status: HealthCheckService.SymlinkStatus
     let isFixing: Bool
     let onFix: (() -> Void)?
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var statusColor: Color {
         if status.isBroken && !status.isTargetMounted { return .orange }
@@ -305,7 +310,7 @@ struct SymlinkStatusRow: View {
                 Button {
                     onFix()
                 } label: {
-                    Label("Sửa", systemImage: "wrench.fill")
+                    Label(t("Sửa"), systemImage: "wrench.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.orange)

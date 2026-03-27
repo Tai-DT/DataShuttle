@@ -51,12 +51,12 @@ struct ShuttleView: View {
         }
         .background(Color(.windowBackgroundColor))
         .alert(t("Lỗi"), isPresented: $viewModel.showError) {
-            Button("OK") {}
+            Button(t("OK")) {}
         } message: {
             Text(viewModel.errorMessage ?? t("Đã xảy ra lỗi"))
         }
         .alert(t("Thành công"), isPresented: $viewModel.showSuccess) {
-            Button("OK") {}
+            Button(t("OK")) {}
         } message: {
             Text(viewModel.successMessage ?? t("Hoàn thành"))
         }
@@ -634,11 +634,16 @@ struct ShuttleCheckpoint: View {
 // MARK: - Destination Volume Button
 
 struct DestinationVolumeButton: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let volume: VolumeInfo
     let isSelected: Bool
     let action: () -> Void
     
     @State private var isHovered = false
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var body: some View {
         Button(action: action) {
@@ -652,7 +657,7 @@ struct DestinationVolumeButton: View {
                     .fontWeight(.medium)
                     .foregroundStyle(isSelected ? .white : .primary)
                 
-                Text("Trống: \(volume.availableBytes.formattedBytes)")
+                Text("\(t("Trống")): \(volume.availableBytes.formattedBytes)")
                     .font(.caption2)
                     .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
             }
@@ -679,6 +684,7 @@ struct DestinationVolumeButton: View {
 // MARK: - Cloud Destination Button
 
 struct CloudDestinationButton: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let service: CloudStorageManager.CloudService
     let isSelected: Bool
     let action: () -> Void
@@ -693,6 +699,10 @@ struct CloudDestinationButton: View {
         case "purple": return .purple
         default: return .blue
         }
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
     }
     
     var body: some View {
@@ -713,7 +723,7 @@ struct CloudDestinationButton: View {
                         .font(.caption2)
                         .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
                 } else {
-                    Text("Cloud sync")
+                    Text(t("Cloud sync"))
                         .font(.caption2)
                         .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
                 }
@@ -741,11 +751,16 @@ struct CloudDestinationButton: View {
 // MARK: - Managed Item Row
 
 struct ManagedItemRow: View {
+    @AppStorage(L10n.languageStorageKey) private var appLanguage: String = AppLanguage.system.rawValue
     let item: ShuttleItem
     let onRestore: () -> Void
     
     @State private var isHovered = false
     @State private var showConfirmRestore = false
+
+    private func t(_ key: String) -> String {
+        L10n.tr(key, languageCode: appLanguage)
+    }
     
     var body: some View {
         HStack(spacing: 16) {
@@ -797,7 +812,7 @@ struct ManagedItemRow: View {
                     URL(fileURLWithPath: item.destinationPath)
                 ])
             } label: {
-                Label("Finder", systemImage: "folder")
+                Label(t("Hiện trong Finder"), systemImage: "folder")
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
@@ -805,7 +820,7 @@ struct ManagedItemRow: View {
             Button {
                 showConfirmRestore = true
             } label: {
-                Label("Khôi phục", systemImage: "arrow.uturn.backward")
+                Label(t("Khôi phục"), systemImage: "arrow.uturn.backward")
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
@@ -827,16 +842,16 @@ struct ManagedItemRow: View {
             isHovered = hovering
         }
         .confirmationDialog(
-            "Khôi phục thư mục?",
+            "\(t("Khôi phục")) \(t("thư mục"))?",
             isPresented: $showConfirmRestore,
             titleVisibility: .visible
         ) {
-            Button("Khôi phục", role: .destructive) {
+            Button(t("Khôi phục"), role: .destructive) {
                 onRestore()
             }
-            Button("Hủy", role: .cancel) {}
+            Button(t("Hủy"), role: .cancel) {}
         } message: {
-            Text("Thư mục \"\(item.folderName)\" sẽ được chuyển từ ổ phụ về vị trí gốc.")
+            Text(t("Thư mục sẽ được chuyển từ ổ phụ sang ổ chính. File gốc trên ổ phụ sẽ bị xóa."))
         }
     }
 }
